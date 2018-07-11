@@ -13,6 +13,7 @@ import com.google.common.base.Predicates;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
@@ -59,7 +60,7 @@ public class FakePlayerUtil {
 		public void sendAllContents(Container containerToSend, NonNullList<ItemStack> itemsList) {
 			//Prevent crashing when objects with containers are clicked on.
 		}
-		
+
 		@Override
 		public float getCooledAttackStrength(float adjustTicks) {
 			return 1; //Prevent the attack strength from always being 0.03 due to not ticking.
@@ -119,9 +120,10 @@ public class FakePlayerUtil {
 	 * @param world The world of the calling tile entity.  It may be a bad idea to use {@link FakePlayer#getEntityWorld()}.
 	 * @param pos The pos of the calling tile entity.
 	 * @param side The direction to use in.
+	 * @param sourceState The state of the calling tile entity, so we don't click ourselves.
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
-	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side) {
+	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side, IBlockState sourceState) {
 		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
@@ -143,7 +145,8 @@ public class FakePlayerUtil {
 			else if (processUseEntity(player, world, toUse.entityHit, null, CPacketUseEntity.Action.INTERACT)) return player.getHeldItemMainhand();
 		} else if (toUse.typeOfHit == RayTraceResult.Type.BLOCK) {
 			BlockPos blockpos = toUse.getBlockPos();
-			if (world.getBlockState(blockpos).getMaterial() != Material.AIR) {
+			IBlockState state = world.getBlockState(blockpos);
+			if (state != sourceState && state.getMaterial() != Material.AIR) {
 				float f = (float) (toUse.hitVec.x - pos.getX());
 				float f1 = (float) (toUse.hitVec.y - pos.getY());
 				float f2 = (float) (toUse.hitVec.z - pos.getZ());
@@ -162,9 +165,10 @@ public class FakePlayerUtil {
 	 * @param world The world of the calling tile entity.  It may be a bad idea to use {@link FakePlayer#getEntityWorld()}.
 	 * @param pos The pos of the calling tile entity.
 	 * @param side The direction to attack in.
+	 * @param sourceState The state of the calling tile entity, so we don't click ourselves.
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
-	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side) {
+	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side, IBlockState sourceState) {
 		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
@@ -185,7 +189,8 @@ public class FakePlayerUtil {
 			if (processUseEntity(player, world, toUse.entityHit, null, CPacketUseEntity.Action.ATTACK)) return player.getHeldItemMainhand();
 		} else if (toUse.typeOfHit == RayTraceResult.Type.BLOCK) {
 			BlockPos blockpos = toUse.getBlockPos();
-			if (world.getBlockState(blockpos).getMaterial() != Material.AIR) {
+			IBlockState state = world.getBlockState(blockpos);
+			if (state != sourceState && state.getMaterial() != Material.AIR) {
 				player.interactionManager.onBlockClicked(blockpos, toUse.sideHit);
 				return player.getHeldItemMainhand();
 			}
@@ -221,7 +226,7 @@ public class FakePlayerUtil {
 
 		for (int j = 0; j < list.size(); ++j) {
 			Entity entity1 = list.get(j);
-			AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow((double) entity1.getCollisionBorderSize());
+			AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow(entity1.getCollisionBorderSize());
 			RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(vec3d, vec3d2);
 
 			if (axisalignedbb.contains(vec3d)) {
