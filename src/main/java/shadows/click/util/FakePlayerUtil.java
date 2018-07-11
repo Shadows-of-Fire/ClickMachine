@@ -134,7 +134,7 @@ public class FakePlayerUtil {
 		if (trace != null && traceEntity != null) {
 			double d1 = trace.hitVec.distanceTo(base);
 			double d2 = traceEntity.hitVec.distanceTo(base);
-			toUse = d1 > d2 ? traceEntity : trace;
+			toUse = traceEntity.typeOfHit == RayTraceResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
 		}
 
 		if (toUse == null) return player.getHeldItemMainhand();
@@ -179,7 +179,7 @@ public class FakePlayerUtil {
 		if (trace != null && traceEntity != null) {
 			double d1 = trace.hitVec.distanceTo(base);
 			double d2 = traceEntity.hitVec.distanceTo(base);
-			toUse = d1 > d2 ? traceEntity : trace;
+			toUse = traceEntity.typeOfHit == RayTraceResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
 		}
 
 		if (toUse == null) return player.getHeldItemMainhand();
