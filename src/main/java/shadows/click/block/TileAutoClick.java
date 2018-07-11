@@ -32,7 +32,7 @@ public class TileAutoClick extends TileEntity implements ITickable {
 		if (world.isRemote) return;
 		if (player == null) {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
-			new NetHandlerSpaghettiServer(getPlayer());
+			getPlayer().connection = new NetHandlerSpaghettiServer(getPlayer());
 		}
 
 		if (player != null && counter++ % 50 == 0) {
@@ -41,7 +41,7 @@ public class TileAutoClick extends TileEntity implements ITickable {
 			ItemStack result = held.getStackInSlot(0);
 			if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing);
 			else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing);
-			FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), held);
+			FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), s -> held.setStackInSlot(0, s));
 		}
 	}
 

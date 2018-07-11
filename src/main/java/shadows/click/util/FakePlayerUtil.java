@@ -3,6 +3,7 @@ package shadows.click.util;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +38,6 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.items.ItemStackHandler;
 
 @EventBusSubscriber
 public class FakePlayerUtil {
@@ -106,10 +106,10 @@ public class FakePlayerUtil {
 	 * @param resultStack The stack that was returned from right/leftClickInDirection.
 	 * @param oldStack The previous stack, from before use.
 	 */
-	public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, ItemStackHandler tileHandler) {
+	public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, Consumer<ItemStack> stackCallback) {
 		if (!oldStack.isEmpty()) player.getAttributeMap().removeAttributeModifiers(oldStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND));
 		player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
-		tileHandler.setStackInSlot(0, resultStack);
+		stackCallback.accept(resultStack);
 		if (!player.inventory.isEmpty()) player.inventory.dropAllItems();
 	}
 
