@@ -15,6 +15,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
+import shadows.click.util.NetHandlerSpaghettiServer;
 
 public class TileAutoClick extends TileEntity implements ITickable {
 
@@ -30,9 +31,8 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	public void update() {
 		if (world.isRemote) return;
 		if (player == null && profile != null) {
-			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile));
-		} else if (player == null) {
-			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, DEFAULT_CLICKER));
+			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
+			player.get().connection = new NetHandlerSpaghettiServer();
 		}
 
 		if (player != null && counter++ % 50 == 0) {
@@ -41,6 +41,9 @@ public class TileAutoClick extends TileEntity implements ITickable {
 			if (rightClick) held.setStackInSlot(0, FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing));
 			else hitShit(facing);
 			getPlayer().inventory.mainInventory.set(getPlayer().inventory.currentItem, ItemStack.EMPTY);
+			if(!getPlayer().inventory.isEmpty()) {
+				getPlayer().inventory.dropAllItems();
+			}
 		}
 	}
 
