@@ -37,13 +37,11 @@ public class TileAutoClick extends TileEntity implements ITickable {
 
 		if (player != null && counter++ % 50 == 0) {
 			EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
-			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0));
-			if (rightClick) held.setStackInSlot(0, FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing));
-			else hitShit(facing);
-			getPlayer().inventory.mainInventory.set(getPlayer().inventory.currentItem, ItemStack.EMPTY);
-			if(!getPlayer().inventory.isEmpty()) {
-				getPlayer().inventory.dropAllItems();
-			}
+			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy());
+			ItemStack result = held.getStackInSlot(0);
+			if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing);
+			else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing);
+			FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), held);
 		}
 	}
 
@@ -64,10 +62,6 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(held);
 		return super.getCapability(capability, facing);
-	}
-
-	public void hitShit(EnumFacing side) {
-		//Dunno what do yet.
 	}
 
 	public ItemStack getStack() {
