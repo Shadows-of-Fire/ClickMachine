@@ -30,9 +30,9 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	@Override
 	public void update() {
 		if (world.isRemote) return;
-		if (player == null && profile != null) {
+		if (player == null) {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
-			player.get().connection = new NetHandlerSpaghettiServer();
+			new NetHandlerSpaghettiServer(getPlayer());
 		}
 
 		if (player != null && counter++ % 50 == 0) {

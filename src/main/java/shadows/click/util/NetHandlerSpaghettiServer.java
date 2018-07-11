@@ -2,6 +2,7 @@ package shadows.click.util;
 
 import java.util.Set;
 
+import net.minecraft.network.EnumPacketDirection;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
@@ -37,11 +38,12 @@ import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.client.CPacketVehicleMove;
 import net.minecraft.network.play.server.SPacketPlayerPosLook.EnumFlags;
 import net.minecraft.util.text.ITextComponent;
+import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
 public class NetHandlerSpaghettiServer extends NetHandlerPlayServer {
 
-	public NetHandlerSpaghettiServer() {
-		super(null, null, null);
+	public NetHandlerSpaghettiServer(UsefulFakePlayer player) {
+		super(null, new NetworkManager(EnumPacketDirection.CLIENTBOUND), player);
 	}
 
 	@Override
@@ -50,11 +52,6 @@ public class NetHandlerSpaghettiServer extends NetHandlerPlayServer {
 
 	@Override
 	public void func_194308_a(CPacketPlaceRecipe p_194308_1_) {
-	}
-
-	@Override
-	public NetworkManager getNetworkManager() {
-		return null;
 	}
 
 	@Override
