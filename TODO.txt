@@ -1,0 +1,6 @@
+Implement sneak bool in TileAutoClick
+Implement some kind of gui or other way to change controls.
+Get real model going, so we aren't just the debug number texture.
+Implement TESR to show the item held.
+Implement config for levels + FE cost per level.
+Move FakePlayerUtil to Placebo because it might be useful elsewhere.
