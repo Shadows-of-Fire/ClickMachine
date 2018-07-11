@@ -5,18 +5,11 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -73,32 +66,6 @@ public class TileAutoClick extends TileEntity implements ITickable {
 
 	public void hitShit(EnumFacing side) {
 		//Dunno what do yet.
-	}
-
-	public void useItem(EnumFacing side) {
-		Vec3d base = new Vec3d(getPlayer().posX, getPlayer().posY, getPlayer().posZ);
-		Vec3d look = getPlayer().getLookVec();
-		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
-		RayTraceResult trace = world.rayTraceBlocks(base, target, false, false, true);
-
-		if (trace == null) return;
-
-		ItemStack itemstack = getPlayer().getHeldItemMainhand();
-		if (trace.typeOfHit == RayTraceResult.Type.BLOCK) {
-			BlockPos blockpos = trace.getBlockPos();
-			if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
-				float f = (float) (trace.hitVec.x - pos.getX());
-				float f1 = (float) (trace.hitVec.y - pos.getY());
-				float f2 = (float) (trace.hitVec.z - pos.getZ());
-				EnumActionResult enumactionresult = getPlayer().interactionManager.processRightClickBlock(getPlayer(), this.world, itemstack, EnumHand.MAIN_HAND, blockpos, trace.sideHit, f, f1, f2);
-				if (enumactionresult == EnumActionResult.SUCCESS) {
-					held.setStackInSlot(0, getPlayer().getHeldItemMainhand());
-					return;
-				}
-			}
-		}
-		if (itemstack.isEmpty() && (trace == null || trace.typeOfHit == RayTraceResult.Type.MISS)) ForgeHooks.onEmptyClick(getPlayer(), EnumHand.MAIN_HAND);
-		if (!itemstack.isEmpty()) getPlayer().interactionManager.processRightClick(getPlayer(), this.world, itemstack, EnumHand.MAIN_HAND);
 	}
 
 	public ItemStack getStack() {
