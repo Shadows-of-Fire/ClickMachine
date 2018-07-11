@@ -40,7 +40,6 @@ public class TileAutoClick extends TileEntity implements ITickable {
 			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0));
 			if (rightClick) held.setStackInSlot(0, FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing));
 			else hitShit(facing);
-			held.setStackInSlot(0, getPlayer().getHeldItemMainhand());
 			getPlayer().inventory.mainInventory.set(getPlayer().inventory.currentItem, ItemStack.EMPTY);
 		}
 	}
