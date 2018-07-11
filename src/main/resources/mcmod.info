@@ -1,0 +1,16 @@
+[
+{
+  "modid": "clickmachine",
+  "name": "Click Machine",
+  "description": "1 clicc boi",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Shadows_of_Fire"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
