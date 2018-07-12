@@ -27,7 +27,7 @@ import shadows.click.proxy.ClickProxy;
 import shadows.placebo.registry.RegistryInformationV2;
 import shadows.placebo.util.RecipeHelper;
 
-@Mod(modid = ClickMachine.MODID, name = ClickMachine.MODNAME, version = ClickMachine.VERSION)
+@Mod(modid = ClickMachine.MODID, name = ClickMachine.MODNAME, version = ClickMachine.VERSION, dependencies = "required-after:placebo@[1.4.0,)")
 public class ClickMachine {
 
 	public static final String MODID = "clickmachine";
