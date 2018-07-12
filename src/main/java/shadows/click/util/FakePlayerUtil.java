@@ -164,6 +164,17 @@ public class FakePlayerUtil {
 				if (enumactionresult == EnumActionResult.SUCCESS) return player.getHeldItemMainhand();
 			}
 		}
+		
+		if(toUse == null || toUse.typeOfHit == RayTraceResult.Type.MISS) {
+			for(int i = 1; i <= 5; i++) {
+				IBlockState state = world.getBlockState(pos.offset(side, i));
+				if (state != sourceState && state.getMaterial() != Material.AIR) {
+					player.interactionManager.processRightClickBlock(player, world, itemstack, EnumHand.MAIN_HAND, pos.offset(side, i), toUse.sideHit, 0, 0, 0);
+					return player.getHeldItemMainhand();
+				}
+			}
+		}
+		
 		if (itemstack.isEmpty() && (toUse == null || toUse.typeOfHit == RayTraceResult.Type.MISS)) ForgeHooks.onEmptyClick(player, EnumHand.MAIN_HAND);
 		if (!itemstack.isEmpty()) player.interactionManager.processRightClick(player, world, itemstack, EnumHand.MAIN_HAND);
 		return player.getHeldItemMainhand();
@@ -205,6 +216,17 @@ public class FakePlayerUtil {
 				return player.getHeldItemMainhand();
 			}
 		}
+
+		if(toUse == null || toUse.typeOfHit == RayTraceResult.Type.MISS) {
+			for(int i = 1; i <= 5; i++) {
+				IBlockState state = world.getBlockState(pos.offset(side, i));
+				if (state != sourceState && state.getMaterial() != Material.AIR) {
+					player.interactionManager.onBlockClicked(pos.offset(side, i), side.getOpposite());
+					return player.getHeldItemMainhand();
+				}
+			}
+		}
+		
 		if (itemstack.isEmpty() && (toUse == null || toUse.typeOfHit == RayTraceResult.Type.MISS)) ForgeHooks.onEmptyLeftClick(player);
 		return player.getHeldItemMainhand();
 	}
