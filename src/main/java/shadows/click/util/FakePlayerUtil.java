@@ -25,6 +25,8 @@ import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.util.EnumFacing.AxisDirection;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -98,9 +100,11 @@ public class FakePlayerUtil {
 		float pitch = direction == EnumFacing.UP ? -90 : direction == EnumFacing.DOWN ? 90 : 0;
 		float yaw = direction == EnumFacing.SOUTH ? 0 : direction == EnumFacing.WEST ? 90 : direction == EnumFacing.NORTH ? 180 : -90;
 		Vec3i sideVec = direction.getDirectionVec();
-		double x = 0.5 + sideVec.getX() / 1.9D;
+		Axis a = direction.getAxis();
+		AxisDirection ad = direction.getAxisDirection();
+		double x = a == Axis.X && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getX() / 1.9D;
 		double y = 0.5 + sideVec.getY() / 1.9D;
-		double z = 0.5 + sideVec.getZ() / 1.9D;
+		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
 		player.setLocationAndAngles(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
 		if (!toHold.isEmpty()) player.getAttributeMap().applyAttributeModifiers(toHold.getAttributeModifiers(EntityEquipmentSlot.MAINHAND));
 		player.setSneaking(sneaking);
@@ -134,7 +138,7 @@ public class FakePlayerUtil {
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(base, target, false, false, true);
-		RayTraceResult traceEntity = traceEntities(player, world);
+		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
 
 		if (trace != null && traceEntity != null) {
@@ -179,7 +183,7 @@ public class FakePlayerUtil {
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(base, target, false, false, true);
-		RayTraceResult traceEntity = traceEntities(player, world);
+		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
 
 		if (trace != null && traceEntity != null) {
@@ -206,43 +210,33 @@ public class FakePlayerUtil {
 	}
 
 	/**
-	 * Traces for an entity.  Uses the player facing.
+	 * Traces for an entity.
 	 * @param player The player.
 	 * @param world The world of the calling tile entity.
 	 * @return A ray trace result that will likely be of type entity, but may be type block, or null.
 	 */
-	public static RayTraceResult traceEntities(UsefulFakePlayer player, World world) {
+	public static RayTraceResult traceEntities(UsefulFakePlayer player, Vec3d base, Vec3d target, World world) {
 		Entity pointedEntity = null;
-		double d0 = 5;
-		RayTraceResult result = rayTrace(player, world, d0, 1);
-		Vec3d vec3d = player.getPositionEyes(1);
-		boolean flag = true;
-		double d1 = d0;
-
-		if (result != null) {
-			d1 = result.hitVec.distanceTo(vec3d);
-		}
-
-		Vec3d vec3d1 = player.getLook(1.0F);
-		Vec3d vec3d2 = vec3d.addVector(vec3d1.x * d0, vec3d1.y * d0, vec3d1.z * d0);
-		pointedEntity = null;
+		RayTraceResult result = null;
 		Vec3d vec3d3 = null;
-		List<Entity> list = world.getEntitiesInAABBexcluding(player, player.getEntityBoundingBox().expand(vec3d1.x * d0, vec3d1.y * d0, vec3d1.z * d0).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, entity -> entity != null && entity.canBeCollidedWith()));
-		double d2 = d1;
+		AxisAlignedBB search = new AxisAlignedBB(base.x, base.y, base.z, target.x, target.y, target.z).grow(.5, .5, .5);
+		List<Entity> list = world.getEntitiesInAABBexcluding(player, search, Predicates.and(EntitySelectors.NOT_SPECTATING, entity -> entity != null && entity.canBeCollidedWith()));
+		double d2 = 5;
 
 		for (int j = 0; j < list.size(); ++j) {
 			Entity entity1 = list.get(j);
-			AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow(entity1.getCollisionBorderSize());
-			RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(vec3d, vec3d2);
 
-			if (axisalignedbb.contains(vec3d)) {
+			AxisAlignedBB aabb = entity1.getEntityBoundingBox().grow(entity1.getCollisionBorderSize());
+			RayTraceResult raytraceresult = aabb.calculateIntercept(base, target);
+
+			if (aabb.contains(base)) {
 				if (d2 >= 0.0D) {
 					pointedEntity = entity1;
-					vec3d3 = raytraceresult == null ? vec3d : raytraceresult.hitVec;
+					vec3d3 = raytraceresult == null ? base : raytraceresult.hitVec;
 					d2 = 0.0D;
 				}
 			} else if (raytraceresult != null) {
-				double d3 = vec3d.distanceTo(raytraceresult.hitVec);
+				double d3 = base.distanceTo(raytraceresult.hitVec);
 
 				if (d3 < d2 || d2 == 0.0D) {
 					if (entity1.getLowestRidingEntity() == player.getLowestRidingEntity() && !entity1.canRiderInteract()) {
@@ -259,12 +253,12 @@ public class FakePlayerUtil {
 			}
 		}
 
-		if (pointedEntity != null && flag && vec3d.distanceTo(vec3d3) > 3.0D) {
+		if (pointedEntity != null && base.distanceTo(vec3d3) > 5) {
 			pointedEntity = null;
 			result = new RayTraceResult(RayTraceResult.Type.MISS, vec3d3, (EnumFacing) null, new BlockPos(vec3d3));
 		}
 
-		if (pointedEntity != null && (d2 < d1 || result == null)) {
+		if (pointedEntity != null) {
 			result = new RayTraceResult(pointedEntity, vec3d3);
 		}
 
