@@ -71,7 +71,11 @@ public class FakePlayerUtil {
 	 * Only store this as a WeakReference, or you'll cause memory leaks.
 	 */
 	public static UsefulFakePlayer getPlayer(World world, GameProfile profile) {
-		return PLAYERS.computeIfAbsent(Pair.of(profile, world.provider.getDimension()), p -> new UsefulFakePlayer(world, p.getLeft()));
+		return PLAYERS.computeIfAbsent(Pair.of(profile, world.provider.getDimension()), p -> {
+			UsefulFakePlayer player = new UsefulFakePlayer(world, p.getLeft());
+			player.connection = new NetHandlerSpaghettiServer(player);
+			return player;
+		});
 	}
 
 	/**
@@ -89,7 +93,7 @@ public class FakePlayerUtil {
 	 * @param direction The direction to use in.
 	 * @param toHold The stack the player will be using.  Should probably come from an ItemStackHandler or similar.
 	 */
-	public static void setupFakePlayerForUse(UsefulFakePlayer player, BlockPos pos, EnumFacing direction, ItemStack toHold) {
+	public static void setupFakePlayerForUse(UsefulFakePlayer player, BlockPos pos, EnumFacing direction, ItemStack toHold, boolean sneaking) {
 		player.inventory.mainInventory.set(player.inventory.currentItem, toHold);
 		float pitch = direction == EnumFacing.UP ? -90 : direction == EnumFacing.DOWN ? 90 : 0;
 		float yaw = direction == EnumFacing.SOUTH ? 0 : direction == EnumFacing.WEST ? 90 : direction == EnumFacing.NORTH ? 180 : -90;
@@ -99,6 +103,7 @@ public class FakePlayerUtil {
 		double z = 0.5 + sideVec.getZ() / 1.9D;
 		player.setLocationAndAngles(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
 		if (!toHold.isEmpty()) player.getAttributeMap().applyAttributeModifiers(toHold.getAttributeModifiers(EntityEquipmentSlot.MAINHAND));
+		player.setSneaking(sneaking);
 	}
 
 	/**
@@ -112,6 +117,7 @@ public class FakePlayerUtil {
 		player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
 		stackCallback.accept(resultStack);
 		if (!player.inventory.isEmpty()) player.inventory.dropAllItems();
+		player.setSneaking(false);
 	}
 
 	/**

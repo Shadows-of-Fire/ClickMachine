@@ -15,10 +15,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
-import shadows.click.util.NetHandlerSpaghettiServer;
 
 public class TileAutoClick extends TileEntity implements ITickable {
 
@@ -29,18 +29,19 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	WeakReference<UsefulFakePlayer> player;
 	int counter = 0;
 	boolean rightClick = true;
+	boolean sneak = false;
+	int speed = 500;
 
 	@Override
 	public void update() {
 		if (world.isRemote) return;
 		if (player == null) {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
-			getPlayer().connection = new NetHandlerSpaghettiServer(getPlayer());
 		}
 
-		if (player != null && counter++ % 50 == 0) {
+		if (player != null && counter++ % speed == 0) {
 			EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
-			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy());
+			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
 			ItemStack result = held.getStackInSlot(0);
 			if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
 			else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
@@ -72,16 +73,36 @@ public class TileAutoClick extends TileEntity implements ITickable {
 		return state1.getBlock() != state2.getBlock();
 	}
 
-	public ItemStack getStack() {
-		return held.getStackInSlot(0);
-	}
-
-	public void empty() {
-		held.setStackInSlot(0, ItemStack.EMPTY);
-	}
-
 	UsefulFakePlayer getPlayer() {
 		return player.get();
+	}
+
+	public IItemHandler getHandler() {
+		return held;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
+
+	public boolean isSneaking() {
+		return sneak;
+	}
+
+	public void setSneaking(boolean sneak) {
+		this.sneak = sneak;
+	}
+
+	public boolean isRightClicking() {
+		return rightClick;
+	}
+
+	public void setRightClicking(boolean rightClick) {
+		this.rightClick = rightClick;
 	}
 
 }

@@ -84,32 +84,8 @@ public class BlockAutoClick extends BlockBasic implements IItemBlock {
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		TileEntity tile = world.getTileEntity(pos);
-		if (!world.isRemote && hand == EnumHand.MAIN_HAND && tile instanceof TileAutoClick) {
-			TileAutoClick te = (TileAutoClick) tile;
-			if (!stack.isEmpty()) player.setHeldItem(EnumHand.MAIN_HAND, te.insert(stack));
-			else {
-				player.setHeldItem(EnumHand.MAIN_HAND, te.getStack());
-				te.empty();
-			}
-		}
+		if (!world.isRemote) player.openGui(ClickMachine.INSTANCE, 0, world, pos.getX(), pos.getY(), pos.getZ());
 		return true;
-	}
-
-	@Override
-	public boolean isFullCube(IBlockState state) {
-		return false;
-	}
-
-	@Override
-	public boolean isOpaqueCube(IBlockState state) {
-		return false;
-	}
-
-	@Override
-	public boolean isNormalCube(IBlockState state) {
-		return false;
 	}
 
 }

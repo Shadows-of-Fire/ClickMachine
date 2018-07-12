@@ -13,10 +13,16 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
 import shadows.click.block.BlockAutoClick;
 import shadows.click.block.TileAutoClick;
+import shadows.click.block.gui.ClickGuiHandler;
+import shadows.click.net.MessageButtonClick;
+import shadows.click.net.MessageButtonClick.ButtonClickHandler;
 import shadows.click.proxy.ClickProxy;
 import shadows.placebo.registry.RegistryInformationV2;
 import shadows.placebo.util.RecipeHelper;
@@ -33,6 +39,7 @@ public class ClickMachine {
 	public static final RecipeHelper HELPER = new RecipeHelper(MODID, MODNAME, INFO.getRecipeList());
 
 	public static final BlockAutoClick AUTO_CLICKER = new BlockAutoClick();
+	public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
 
 	@Instance
 	public static ClickMachine INSTANCE;
@@ -44,6 +51,10 @@ public class ClickMachine {
 	public void preInit(FMLPreInitializationEvent e) {
 		MinecraftForge.EVENT_BUS.register(this);
 		GameRegistry.registerTileEntity(TileAutoClick.class, AUTO_CLICKER.getRegistryName());
+		NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, new ClickGuiHandler());
+
+		int x = 0;
+		NETWORK.registerMessage(ButtonClickHandler.class, MessageButtonClick.class, x++, Side.SERVER);
 	}
 
 	@SubscribeEvent
