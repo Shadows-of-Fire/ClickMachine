@@ -3,6 +3,7 @@ package shadows.click.block.gui;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -12,6 +13,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import shadows.click.ClickMachine;
+import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
 import shadows.click.net.MessageButtonClick;
 
@@ -33,19 +35,25 @@ public class GuiAutoClick extends GuiContainer {
 		super.initGui();
 		for (Buttons b : Buttons.values())
 			buttons[b.ordinal()] = this.addButton(b.getAndInitButton(this));
+		buttons[tile.getSpeedIndex()].setStateTriggered(true);
+		buttons[9].setStateTriggered(tile.isSneaking());
+		buttons[tile.isRightClicking() ? 11 : 10].setStateTriggered(true);
 	}
 
+	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		this.drawDefaultBackground();
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		this.renderHoveredToolTip(mouseX, mouseY);
 	}
 
+	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		this.fontRenderer.drawString(I18n.format("gui.clickmachine.autoclick.name"), 8, 6, 4210752);
 		this.fontRenderer.drawString(player.inventory.getDisplayName().getUnformattedText(), 8, this.ySize - 96 + 2, 4210752);
 	}
 
+	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		this.mc.getTextureManager().bindTexture(GUI_TEXTURE);
@@ -78,19 +86,27 @@ public class GuiAutoClick extends GuiContainer {
 		ClickMachine.NETWORK.sendToServer(new MessageButtonClick(button.id));
 	}
 
+	public void setButtonState(int buttonId, boolean on) {
+		buttons[buttonId].setStateTriggered(on);
+	}
+
+	public static void setFormatArgs(int button, Object... args) {
+		Buttons.VALUES[button].formatArgs = args;
+	}
+
 	enum Buttons {
-		SPEED_0(18 * 2, 18, 176, 0, "gui.clickmachine.speed_0.tooltip"),
-		SPEED_1(18 * 3, 18, 176, 18, "gui.clickmachine.speed_1.tooltip"),
-		SPEED_2(18 * 4, 18, 176, 18 * 2, "gui.clickmachine.speed_2.tooltip"),
-		SPEED_3(18 * 2, 36, 176, 18 * 3, "gui.clickmachine.speed_3.tooltip"),
-		SPEED_4(18 * 3, 36, 176, 18 * 4, "gui.clickmachine.speed_4.tooltip"),
-		SPEED_5(18 * 4, 36, 176, 18 * 5, "gui.clickmachine.speed_5.tooltip"),
-		SPEED_6(18 * 2, 54, 176, 18 * 6, "gui.clickmachine.speed_6.tooltip"),
-		SPEED_7(18 * 3, 54, 176, 18 * 7, "gui.clickmachine.speed_7.tooltip"),
-		SPEED_8(18 * 4, 54, 176, 18 * 8, "gui.clickmachine.speed_8.tooltip"),
-		SNEAK(18 * 6, 18, 176, 18 * 9, "gui.clickmachine.sneak.tooltip"),
-		LEFT_CLICK(18 * 6 - 9, 54, 176, 18 * 10, "gui.clickmachine.left_click.tooltip"),
-		RIGHT_CLICK(18 * 7 - 9, 54, 176, 18 * 11, "gui.clickmachine.right_click.tooltip");
+		SPEED_0(18 * 2, 18, 176, 0),
+		SPEED_1(18 * 3, 18, 176, 18),
+		SPEED_2(18 * 4, 18, 176, 18 * 2),
+		SPEED_3(18 * 2, 36, 176, 18 * 3),
+		SPEED_4(18 * 3, 36, 176, 18 * 4),
+		SPEED_5(18 * 4, 36, 176, 18 * 5),
+		SPEED_6(18 * 2, 54, 176, 18 * 6),
+		SPEED_7(18 * 3, 54, 176, 18 * 7),
+		SPEED_8(18 * 4, 54, 176, 18 * 8),
+		SNEAK(18 * 6, 18, 176, 18 * 9),
+		LEFT_CLICK(18 * 6 - 9, 54, 176, 18 * 10),
+		RIGHT_CLICK(18 * 7 - 9, 54, 176, 18 * 11);
 
 		static final Buttons[] VALUES = Buttons.values();
 
@@ -100,18 +116,19 @@ public class GuiAutoClick extends GuiContainer {
 		int u;
 		int v;
 		String unlocalized;
+		Object[] formatArgs = new Object[0];
 
-		Buttons(int x, int y, int u, int v, String unlocalized) {
+		Buttons(int x, int y, int u, int v) {
 			this.id = ordinal();
 			this.x = x - 1;
 			this.y = y - 2;
 			this.u = u;
 			this.v = v;
-			this.unlocalized = unlocalized;
+			this.unlocalized = "gui.clickmachine." + name().toLowerCase(Locale.ROOT) + (ClickMachineConfig.usesRF && id < 9 ? "rf.tooltip" : ".tooltip");
 		}
 
 		List<String> getTooltip() {
-			return Arrays.asList(I18n.format(unlocalized));
+			return Arrays.asList(I18n.format(unlocalized, formatArgs));
 		}
 
 		BetterButtonToggle getAndInitButton(GuiAutoClick gui) {

@@ -8,6 +8,9 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -17,6 +20,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import shadows.click.ClickMachineConfig;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
@@ -30,7 +34,7 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	int counter = 0;
 	boolean rightClick = true;
 	boolean sneak = false;
-	int speed = 500;
+	int speedIdx = 0;
 
 	@Override
 	public void update() {
@@ -39,7 +43,9 @@ public class TileAutoClick extends TileEntity implements ITickable {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
 		}
 
-		if (player != null && counter++ % speed == 0) {
+		if (world.isBlockPowered(pos)) return;
+
+		if (player != null && counter++ % getSpeed() == 0) {
 			EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
 			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
 			ItemStack result = held.getStackInSlot(0);
@@ -82,11 +88,15 @@ public class TileAutoClick extends TileEntity implements ITickable {
 	}
 
 	public int getSpeed() {
-		return speed;
+		return ClickMachineConfig.speeds[speedIdx];
 	}
 
-	public void setSpeed(int speed) {
-		this.speed = speed;
+	public int getSpeedIndex() {
+		return speedIdx;
+	}
+
+	public void setSpeedIndex(int speedIdx) {
+		this.speedIdx = speedIdx;
 	}
 
 	public boolean isSneaking() {
@@ -103,6 +113,59 @@ public class TileAutoClick extends TileEntity implements ITickable {
 
 	public void setRightClicking(boolean rightClick) {
 		this.rightClick = rightClick;
+	}
+
+	static final String tagUUID = "uuid";
+	static final String tagName = "name";
+	static final String tagCounter = "counter";
+	static final String tagSpeed = "speed_index";
+	static final String tagSneak = "sneak";
+	static final String tagRightClick = "right_click";
+	static final String tagHandler = "inv";
+
+	@Override
+	public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+		if (profile != null) {
+			tag.setUniqueId(tagUUID, profile.getId());
+			tag.setString(tagName, profile.getName());
+		}
+		tag.setTag(tagHandler, held.serializeNBT());
+		writeSyncData(tag);
+		return super.writeToNBT(tag);
+	}
+
+	void writeSyncData(NBTTagCompound tag) {
+		tag.setInteger(tagCounter, counter);
+		tag.setInteger(tagSpeed, speedIdx);
+		tag.setBoolean(tagSneak, sneak);
+		tag.setBoolean(tagRightClick, rightClick);
+	}
+
+	void readSyncData(NBTTagCompound tag) {
+		counter = tag.getInteger(tagCounter);
+		speedIdx = tag.getInteger(tagSpeed);
+		sneak = tag.getBoolean(tagSneak);
+		rightClick = tag.getBoolean(tagRightClick);
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound tag) {
+		super.readFromNBT(tag);
+		if (tag.hasKey(tagUUID) && tag.hasKey(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
+		if (tag.hasKey(tagHandler)) held.deserializeNBT(tag.getCompoundTag(tagHandler));
+		readSyncData(tag);
+	}
+
+	@Override
+	public SPacketUpdateTileEntity getUpdatePacket() {
+		NBTTagCompound tag = new NBTTagCompound();
+		writeSyncData(tag);
+		return new SPacketUpdateTileEntity(pos, 05150, tag);
+	}
+
+	@Override
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+		readSyncData(pkt.getNbtCompound());
 	}
 
 }

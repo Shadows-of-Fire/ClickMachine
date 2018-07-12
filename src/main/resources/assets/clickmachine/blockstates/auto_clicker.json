@@ -8,7 +8,8 @@
 			"south": "clickmachine:blocks/front",
 			"west": "clickmachine:blocks/default",
 			"up": "clickmachine:blocks/default",
-			"down": "clickmachine:blocks/default"
+			"down": "clickmachine:blocks/default",
+			"particle": "clickmachine:blocks/default"
 		}
 	},
 	"variants": {

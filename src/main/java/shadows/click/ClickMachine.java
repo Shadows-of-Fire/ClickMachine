@@ -53,6 +53,7 @@ public class ClickMachine {
 		GameRegistry.registerTileEntity(TileAutoClick.class, AUTO_CLICKER.getRegistryName());
 		NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, new ClickGuiHandler());
 
+		PROXY.setupGuiArgs();
 		int x = 0;
 		NETWORK.registerMessage(ButtonClickHandler.class, MessageButtonClick.class, x++, Side.SERVER);
 	}

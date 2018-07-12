@@ -5,8 +5,8 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
-import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
+import shadows.click.util.VanillaPacketDispatcher;
 
 public class ContainerAutoClick extends Container {
 
@@ -38,7 +38,7 @@ public class ContainerAutoClick extends Container {
 
 	public void handleButtonClick(int button) {
 		if (button < 12) {
-			if (button < 9) tile.setSpeed(ClickMachineConfig.speeds[button]);
+			if (button < 9) tile.setSpeedIndex(button);
 			else if (button == 9) tile.setSneaking(!tile.isSneaking());
 			else tile.setRightClicking(button == 11);
 		}
@@ -58,15 +58,15 @@ public class ContainerAutoClick extends Container {
 			if (slotIndex < otherSlots) {
 				if (!this.mergeItemStack(current, otherSlots, this.inventorySlots.size(), true)) { return ItemStack.EMPTY; }
 			} else if (!this.mergeItemStack(current, 0, otherSlots, false)) { return ItemStack.EMPTY; }
-
-			if (current.getCount() == 0) {
-				slot.putStack(ItemStack.EMPTY);
-			} else {
-				slot.onSlotChanged();
-			}
+			slot.onSlotChanged();
 		}
 
 		return transferred;
+	}
+
+	@Override
+	public void onContainerClosed(EntityPlayer player) {
+		VanillaPacketDispatcher.dispatchTEToPlayer(tile, player);
 	}
 
 }
