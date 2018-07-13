@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -52,7 +53,7 @@ public class ClickMachine {
 		MinecraftForge.EVENT_BUS.register(this);
 		GameRegistry.registerTileEntity(TileAutoClick.class, AUTO_CLICKER.getRegistryName());
 		NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, new ClickGuiHandler());
-
+		ClickMachineConfig.init(new Configuration(e.getSuggestedConfigurationFile()));
 		PROXY.setupGuiArgs();
 		int x = 0;
 		NETWORK.registerMessage(ButtonClickHandler.class, MessageButtonClick.class, x++, Side.SERVER);
