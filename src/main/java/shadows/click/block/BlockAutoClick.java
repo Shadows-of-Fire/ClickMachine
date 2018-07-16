@@ -79,13 +79,23 @@ public class BlockAutoClick extends BlockBasic implements IItemBlock {
 
 	@Override
 	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return getDefaultState().withProperty(FACING, facing);
+		EnumFacing face = placer.getHorizontalFacing().getOpposite();
+		if (placer.rotationPitch > 50) face = EnumFacing.UP;
+		else if (placer.rotationPitch < -50) face = EnumFacing.DOWN;
+		return getDefaultState().withProperty(FACING, face);
 	}
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		if (!world.isRemote) player.openGui(ClickMachine.INSTANCE, 0, world, pos.getX(), pos.getY(), pos.getZ());
 		return true;
+	}
+
+	@Override
+	public void breakBlock(World world, BlockPos pos, IBlockState state) {
+		TileEntity te = world.getTileEntity(pos);
+		if (te instanceof TileAutoClick) spawnAsEntity(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
+		super.breakBlock(world, pos, state);
 	}
 
 }
