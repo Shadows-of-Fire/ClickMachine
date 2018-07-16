@@ -1,11 +1,14 @@
 package shadows.click.block.gui;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
+import shadows.click.ClickMachine;
 import shadows.click.block.TileAutoClick;
+import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.VanillaPacketDispatcher;
 
 public class ContainerAutoClick extends Container {
@@ -17,7 +20,7 @@ public class ContainerAutoClick extends Container {
 		this.tile = tile;
 		this.player = player;
 
-		this.addSlotToContainer(new SlotItemHandler(tile.getHandler(), 0, 8, 34));
+		this.addSlotToContainer(new SlotItemHandler(tile.getHandler(), 0, 8, 35));
 
 		for (int i1 = 0; i1 < 3; ++i1) {
 			for (int k1 = 0; k1 < 9; ++k1) {
@@ -28,7 +31,6 @@ public class ContainerAutoClick extends Container {
 		for (int j1 = 0; j1 < 9; ++j1) {
 			this.addSlotToContainer(new Slot(player.inventory, j1, 8 + j1 * 18, 142));
 		}
-
 	}
 
 	@Override
@@ -66,7 +68,18 @@ public class ContainerAutoClick extends Container {
 
 	@Override
 	public void onContainerClosed(EntityPlayer player) {
-		VanillaPacketDispatcher.dispatchTEToPlayer(tile, player);
+		if (!player.world.isRemote) VanillaPacketDispatcher.dispatchTEToPlayer(tile, player);
+	}
+
+	boolean sent = false;
+
+	@Override
+	public void detectAndSendChanges() {
+		super.detectAndSendChanges();
+		if (!sent && tile.hasWorld() && !tile.getWorld().isRemote) {
+			sent = true;
+			ClickMachine.NETWORK.sendTo(new MessageUpdateGui(tile), (EntityPlayerMP) player);
+		}
 	}
 
 }

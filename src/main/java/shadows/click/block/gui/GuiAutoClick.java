@@ -40,6 +40,19 @@ public class GuiAutoClick extends GuiContainer {
 		buttons[tile.isRightClicking() ? 11 : 10].setStateTriggered(true);
 	}
 
+	public void updateTile(int speedIdx, boolean sneaking, boolean rightClick, int power) {
+
+		for (BetterButtonToggle b : buttons) {
+			if (b.id < 9) b.setStateTriggered(b.id == speedIdx);
+		}
+		buttons[9].setStateTriggered(sneaking);
+		for (BetterButtonToggle b : buttons) {
+			if (b.id > 9) b.setStateTriggered(rightClick ? b.id == 11 : b.id == 10);
+		}
+
+		tile.setPower(power);
+	}
+
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		this.drawDefaultBackground();
@@ -49,6 +62,9 @@ public class GuiAutoClick extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+		mc.renderEngine.bindTexture(GUI_TEXTURE);
+		int n = (int) (18 * 4 * Math.min(1, (1 - ((float) tile.getPower() / ClickMachineConfig.maxPowerStorage))));
+		this.drawTexturedModalRect(151, 7 + n, 230, n, 18, 18 * 4);
 		this.fontRenderer.drawString(I18n.format("gui.clickmachine.autoclick.name"), 8, 6, 4210752);
 		this.fontRenderer.drawString(player.inventory.getDisplayName().getUnformattedText(), 8, this.ySize - 96 + 2, 4210752);
 	}
@@ -94,19 +110,23 @@ public class GuiAutoClick extends GuiContainer {
 		Buttons.VALUES[button].formatArgs = args;
 	}
 
+	public TileAutoClick getTile() {
+		return tile;
+	}
+
 	enum Buttons {
-		SPEED_0(18 * 2, 18, 176, 0),
-		SPEED_1(18 * 3, 18, 176, 18),
-		SPEED_2(18 * 4, 18, 176, 18 * 2),
-		SPEED_3(18 * 2, 36, 176, 18 * 3),
-		SPEED_4(18 * 3, 36, 176, 18 * 4),
-		SPEED_5(18 * 4, 36, 176, 18 * 5),
-		SPEED_6(18 * 2, 54, 176, 18 * 6),
-		SPEED_7(18 * 3, 54, 176, 18 * 7),
-		SPEED_8(18 * 4, 54, 176, 18 * 8),
-		SNEAK(18 * 6, 18, 176, 18 * 9),
-		LEFT_CLICK(18 * 6 - 9, 54, 176, 18 * 10),
-		RIGHT_CLICK(18 * 7 - 9, 54, 176, 18 * 11);
+		SPEED_0(18 * 2 - 1, 18, 176, 0),
+		SPEED_1(18 * 3 - 1, 18, 176, 18),
+		SPEED_2(18 * 4 - 1, 18, 176, 18 * 2),
+		SPEED_3(18 * 2 - 1, 36, 176, 18 * 3),
+		SPEED_4(18 * 3 - 1, 36, 176, 18 * 4),
+		SPEED_5(18 * 4 - 1, 36, 176, 18 * 5),
+		SPEED_6(18 * 2 - 1, 54, 176, 18 * 6),
+		SPEED_7(18 * 3 - 1, 54, 176, 18 * 7),
+		SPEED_8(18 * 4 - 1, 54, 176, 18 * 8),
+		SNEAK(18 * 6 - 1, 18, 176, 18 * 9),
+		LEFT_CLICK(18 * 6 - 10, 54, 176, 18 * 10),
+		RIGHT_CLICK(18 * 7 - 10, 54, 176, 18 * 11);
 
 		static final Buttons[] VALUES = Buttons.values();
 

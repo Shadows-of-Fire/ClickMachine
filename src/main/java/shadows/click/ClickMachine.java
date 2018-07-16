@@ -5,6 +5,10 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.RegistryEvent.Register;
@@ -23,7 +27,9 @@ import shadows.click.block.BlockAutoClick;
 import shadows.click.block.TileAutoClick;
 import shadows.click.block.gui.ClickGuiHandler;
 import shadows.click.net.MessageButtonClick;
+import shadows.click.net.MessageUpdateGui;
 import shadows.click.net.MessageButtonClick.ButtonClickHandler;
+import shadows.click.net.MessageUpdateGui.UpdatePowerHandler;
 import shadows.click.proxy.ClickProxy;
 import shadows.placebo.registry.RegistryInformationV2;
 import shadows.placebo.util.RecipeHelper;
@@ -57,12 +63,20 @@ public class ClickMachine {
 		PROXY.setupGuiArgs();
 		int x = 0;
 		NETWORK.registerMessage(ButtonClickHandler.class, MessageButtonClick.class, x++, Side.SERVER);
+		NETWORK.registerMessage(UpdatePowerHandler.class, MessageUpdateGui.class, x++, Side.CLIENT);
 	}
 
 	@SubscribeEvent
 	public void blocks(Register<Block> e) {
 		INFO.getBlockList().register(e.getRegistry());
 		INFO.getItemList().register(ForgeRegistries.ITEMS);
+	}
+
+	@SubscribeEvent
+	public void recipes(Register<IRecipe> e) {
+		Ingredient diorite = Ingredient.fromStacks(new ItemStack(Blocks.STONE, 1, 4));
+		HELPER.addShaped(AUTO_CLICKER, 3, 3, diorite, diorite, diorite, diorite, Blocks.CHORUS_FLOWER, diorite, diorite, Blocks.REDSTONE_BLOCK, diorite);
+		INFO.getRecipeList().register(e.getRegistry());
 	}
 
 }

@@ -6,6 +6,7 @@ public class ClickMachineConfig {
 
 	public static int[] speeds = new int[] { 500, 200, 100, 50, 20, 10, 5, 2, 1 };
 	public static boolean usesRF = false;
+	public static int maxPowerStorage = 50000;
 	public static int[] powerPerSpeed = new int[] { 0, 3, 5, 10, 25, 50, 100, 250, 500 };
 
 	public static void init(Configuration cfg) {
@@ -29,6 +30,8 @@ public class ClickMachineConfig {
 
 		for (int i = 0; i < 9; i++)
 			powerPerSpeed[i] = Integer.parseInt(unparsed[i]);
+		
+		maxPowerStorage = cfg.getInt("Max Power Storage", Configuration.CATEGORY_GENERAL, maxPowerStorage, 0, Integer.MAX_VALUE, "How much power the auto clicker can store.  Also the max input rate.  Unused if \"Uses RF\" = false");
 	}
 
 }
