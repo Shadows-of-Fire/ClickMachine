@@ -83,6 +83,7 @@ public class GuiAutoClick extends GuiContainer {
 		super.renderHoveredToolTip(x, y);
 		for (BetterButtonToggle b : buttons)
 			if (b.isMouseOver()) this.drawHoveringText(Buttons.VALUES[b.id].getTooltip(), x, y, fontRenderer);
+		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) drawHoveringText(Arrays.asList(I18n.format("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.maxPowerStorage)), x, y, fontRenderer);
 	}
 
 	@Override
@@ -144,7 +145,7 @@ public class GuiAutoClick extends GuiContainer {
 			this.y = y - 2;
 			this.u = u;
 			this.v = v;
-			this.unlocalized = "gui.clickmachine." + name().toLowerCase(Locale.ROOT) + (ClickMachineConfig.usesRF && id < 9 ? "rf.tooltip" : ".tooltip");
+			this.unlocalized = "gui.clickmachine." + name().toLowerCase(Locale.ROOT) + (ClickMachineConfig.usesRF && id < 9 ? ".rf.tooltip" : ".tooltip");
 		}
 
 		List<String> getTooltip() {

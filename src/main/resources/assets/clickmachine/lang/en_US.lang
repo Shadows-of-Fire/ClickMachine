@@ -21,3 +21,4 @@ gui.clickmachine.speed_8.tooltip=Speed 8: One click every %s ticks
 gui.clickmachine.sneak.tooltip=Toggle Sneaking
 gui.clickmachine.left_click.tooltip=Left Click
 gui.clickmachine.right_click.tooltip=Right Click
+gui.clickmachine.power.tooltip=Power: %s/%s

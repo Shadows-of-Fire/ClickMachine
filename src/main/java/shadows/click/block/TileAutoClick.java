@@ -53,19 +53,21 @@ public class TileAutoClick extends TileEntity implements ITickable {
 
 		if (world.isBlockPowered(pos)) return;
 
-		int use = ClickMachineConfig.powerPerSpeed[speedIdx];
-		if (player != null && counter++ % getSpeed() == 0 && power.extractEnergy(use, true) == use) {
-			EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
-			FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
-			ItemStack result = held.getStackInSlot(0);
-			if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
-			else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
-			FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), s -> held.setStackInSlot(0, s));
+		int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[speedIdx] : 0;
+		if (power.extractEnergy(use, true) == use) {
 			power.extractEnergy(use, false);
-			markDirty();
+			if (player != null && counter++ % getSpeed() == 0) {
+				EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
+				FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
+				ItemStack result = held.getStackInSlot(0);
+				if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
+				else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
+				FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), s -> held.setStackInSlot(0, s));
+				markDirty();
+			}
 		}
 
-		if (counter % 10 == 0 && power.getEnergyStored() != lastPower) {
+		if (counter % ClickMachineConfig.powerUpdateFreq == 0 && power.getEnergyStored() != lastPower) {
 			if (us == null) us = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0);
 			ClickMachine.NETWORK.sendToAllTracking(new MessageUpdateGui(power.getEnergyStored()), us);
 			lastPower = power.getEnergyStored();

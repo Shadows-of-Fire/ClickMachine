@@ -8,6 +8,7 @@ public class ClickMachineConfig {
 	public static boolean usesRF = false;
 	public static int maxPowerStorage = 50000;
 	public static int[] powerPerSpeed = new int[] { 0, 3, 5, 10, 25, 50, 100, 250, 500 };
+	public static int powerUpdateFreq = 10;
 
 	public static void init(Configuration cfg) {
 
@@ -32,6 +33,8 @@ public class ClickMachineConfig {
 			powerPerSpeed[i] = Integer.parseInt(unparsed[i]);
 
 		maxPowerStorage = cfg.getInt("Max Power Storage", Configuration.CATEGORY_GENERAL, maxPowerStorage, 0, Integer.MAX_VALUE, "How much power the auto clicker can store.  Also the max input rate.  Unused if \"Uses RF\" = false");
+
+		powerUpdateFreq = cfg.getInt("Power Update Frequency", Configuration.CATEGORY_GENERAL, 10, 1, Integer.MAX_VALUE, "How often, in ticks, the power value of the TE will be synced with the GUI.");
 
 		if (cfg.hasChanged()) cfg.save();
 	}
