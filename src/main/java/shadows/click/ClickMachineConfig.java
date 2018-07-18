@@ -21,7 +21,7 @@ public class ClickMachineConfig {
 			speeds[i] = Integer.parseInt(unparsed[i]);
 
 		usesRF = cfg.getBoolean("Uses RF", Configuration.CATEGORY_GENERAL, usesRF, "If the auto clicker uses RF");
-		
+
 		def = new String[9];
 		for (int i = 0; i < 9; i++)
 			def[i] = ((Integer) powerPerSpeed[i]).toString();
@@ -30,8 +30,10 @@ public class ClickMachineConfig {
 
 		for (int i = 0; i < 9; i++)
 			powerPerSpeed[i] = Integer.parseInt(unparsed[i]);
-		
+
 		maxPowerStorage = cfg.getInt("Max Power Storage", Configuration.CATEGORY_GENERAL, maxPowerStorage, 0, Integer.MAX_VALUE, "How much power the auto clicker can store.  Also the max input rate.  Unused if \"Uses RF\" = false");
+
+		if (cfg.hasChanged()) cfg.save();
 	}
 
 }
