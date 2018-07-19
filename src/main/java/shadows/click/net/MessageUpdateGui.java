@@ -2,7 +2,6 @@ package shadows.click.net;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -67,10 +66,9 @@ public class MessageUpdateGui implements IMessage {
 		@Override
 		public MessageUpdateGui onMessage(MessageUpdateGui message, MessageContext ctx) {
 			Minecraft.getMinecraft().addScheduledTask(() -> {
-				Gui g = Minecraft.getMinecraft().currentScreen;
-				if (g instanceof GuiAutoClick) {
-					if (message.t == Type.POWER) ((GuiAutoClick) g).getTile().setPower(message.power);
-					else((GuiAutoClick) g).updateTile(message.speedIdx, message.sneak, message.right, message.power);
+				if (Minecraft.getMinecraft().currentScreen instanceof GuiAutoClick) {
+					if (message.t == Type.POWER) ((GuiAutoClick) Minecraft.getMinecraft().currentScreen).getTile().setPower(message.power);
+					else((GuiAutoClick) Minecraft.getMinecraft().currentScreen).updateTile(message.speedIdx, message.sneak, message.right, message.power);
 				}
 			});
 			return null;
