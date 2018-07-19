@@ -39,7 +39,7 @@ public class ClickMachine {
 
 	public static final String MODID = "clickmachine";
 	public static final String MODNAME = "Click Machine";
-	public static final String VERSION = "1.1.0";
+	public static final String VERSION = "1.1.1";
 
 	public static final Logger LOG = LogManager.getLogger(MODID);
 	public static final RegistryInformationV2 INFO = new RegistryInformationV2(MODID, CreativeTabs.REDSTONE);
