@@ -136,7 +136,7 @@ public class FakePlayerUtil {
 	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side, IBlockState sourceState) {
 		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
 		Vec3d look = player.getLookVec();
-		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
+		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(base, target, false, false, true);
 		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
@@ -192,7 +192,7 @@ public class FakePlayerUtil {
 	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, EnumFacing side, IBlockState sourceState) {
 		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
 		Vec3d look = player.getLookVec();
-		Vec3d target = base.addVector(look.x * 5, look.y * 5, look.z * 5);
+		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(base, target, false, false, true);
 		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
@@ -325,7 +325,7 @@ public class FakePlayerUtil {
 	public static RayTraceResult rayTrace(UsefulFakePlayer player, World world, double reachDist, float partialTicks) {
 		Vec3d vec3d = player.getPositionEyes(partialTicks);
 		Vec3d vec3d1 = player.getLook(partialTicks);
-		Vec3d vec3d2 = vec3d.addVector(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
+		Vec3d vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
 		return world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
 	}
 
