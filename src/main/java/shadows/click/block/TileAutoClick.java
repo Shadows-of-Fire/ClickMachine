@@ -2,6 +2,7 @@ package shadows.click.block;
 
 import java.lang.ref.WeakReference;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
 
@@ -29,7 +30,7 @@ import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
-public class TileAutoClick extends TileEntity implements ITickable {
+public class TileAutoClick extends TileEntity implements ITickable, Consumer<ItemStack> {
 
 	public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
@@ -51,20 +52,22 @@ public class TileAutoClick extends TileEntity implements ITickable {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
 		}
 
-		if (world.isBlockPowered(pos)) return;
+		if (!world.isBlockPowered(pos)) {
 
-		int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[speedIdx] : 0;
-		if (power.extractEnergy(use, true) == use) {
-			power.extractEnergy(use, false);
-			if (player != null && counter++ % getSpeed() == 0) {
-				EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
-				FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
-				ItemStack result = held.getStackInSlot(0);
-				if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
-				else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
-				FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), s -> held.setStackInSlot(0, s));
-				markDirty();
+			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[speedIdx] : 0;
+			if (power.extractEnergy(use, true) == use) {
+				power.extractEnergy(use, false);
+				if (player != null && counter++ % getSpeed() == 0) {
+					EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
+					FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
+					ItemStack result = held.getStackInSlot(0);
+					if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
+					else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
+					FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), this);
+					markDirty();
+				}
 			}
+
 		}
 
 		if (counter % ClickMachineConfig.powerUpdateFreq == 0 && power.getEnergyStored() != lastPower) {
@@ -205,6 +208,11 @@ public class TileAutoClick extends TileEntity implements ITickable {
 		power.extractEnergy(power.getMaxEnergyStored(), false);
 		power.receiveEnergy(energy, false);
 		markDirty();
+	}
+
+	@Override
+	public void accept(ItemStack s) {
+		held.setStackInSlot(0, s);
 	}
 
 }
