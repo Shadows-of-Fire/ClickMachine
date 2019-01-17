@@ -3,13 +3,13 @@
 	"defaults": {
 		"model": "cube",
 		"textures": {
-			"north": "clickmachine:blocks/default",
-			"east": "clickmachine:blocks/default",
-			"south": "clickmachine:blocks/front",
-			"west": "clickmachine:blocks/default",
-			"up": "clickmachine:blocks/default",
-			"down": "clickmachine:blocks/default",
-			"particle": "clickmachine:blocks/default"
+			"north": "clickmachine:blocks/default2",
+			"east": "clickmachine:blocks/default2",
+			"south": "clickmachine:blocks/front2",
+			"west": "clickmachine:blocks/default2",
+			"up": "clickmachine:blocks/default2",
+			"down": "clickmachine:blocks/default2",
+			"particle": "clickmachine:blocks/default2"
 		}
 	},
 	"variants": {

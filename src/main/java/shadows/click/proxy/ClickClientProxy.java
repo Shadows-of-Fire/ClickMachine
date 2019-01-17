@@ -7,6 +7,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.gui.GuiAutoClick;
+import shadows.placebo.Placebo;
 import shadows.placebo.util.PlaceboUtil;
 
 @EventBusSubscriber(value = Side.CLIENT, modid = ClickMachine.MODID)
@@ -22,7 +23,10 @@ public class ClickClientProxy extends ClickProxy {
 
 	@SubscribeEvent
 	public static void models(ModelRegistryEvent e) {
-		PlaceboUtil.sMRL(ClickMachine.AUTO_CLICKER, 0, "facing=north");
+		if (ClickMachineConfig.classicTex) {
+			PlaceboUtil.sMRL(ClickMachine.MODID, "auto_clicker_old", ClickMachine.AUTO_CLICKER, 0, "facing=north");
+			Placebo.PROXY.useRenamedMapper(ClickMachine.AUTO_CLICKER, "auto_clicker_old");
+		} else PlaceboUtil.sMRL(ClickMachine.AUTO_CLICKER, 0, "facing=north");
 	}
 
 }
