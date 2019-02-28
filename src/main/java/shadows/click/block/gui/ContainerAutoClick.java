@@ -6,12 +6,13 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
-import shadows.click.ClickMachine;
 import shadows.click.block.TileAutoClick;
 import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.VanillaPacketDispatcher;
+import shadows.placebo.Placebo;
+import shadows.placebo.net.IClickableContainer;
 
-public class ContainerAutoClick extends Container {
+public class ContainerAutoClick extends Container implements IClickableContainer {
 
 	TileAutoClick tile;
 	EntityPlayer player;
@@ -38,7 +39,8 @@ public class ContainerAutoClick extends Container {
 		return true;
 	}
 
-	public void handleButtonClick(int button) {
+	@Override
+	public void handleClick(int button) {
 		if (button < 12) {
 			if (button < 9) tile.setSpeedIndex(button);
 			else if (button == 9) tile.setSneaking(!tile.isSneaking());
@@ -72,13 +74,19 @@ public class ContainerAutoClick extends Container {
 	}
 
 	boolean sent = false;
+	int lastPower = 0;
 
 	@Override
 	public void detectAndSendChanges() {
 		super.detectAndSendChanges();
 		if (!sent && tile.hasWorld() && !tile.getWorld().isRemote) {
 			sent = true;
-			ClickMachine.NETWORK.sendTo(new MessageUpdateGui(tile), (EntityPlayerMP) player);
+			Placebo.NETWORK.sendTo(new MessageUpdateGui(tile), (EntityPlayerMP) player);
+			lastPower = tile.getPower();
+		}
+		if (tile.getPower() != lastPower) {
+			Placebo.NETWORK.sendTo(new MessageUpdateGui(tile.getPower()), (EntityPlayerMP) player);
+			lastPower = tile.getPower();
 		}
 	}
 

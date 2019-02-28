@@ -15,7 +15,8 @@ import net.minecraft.util.ResourceLocation;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
-import shadows.click.net.MessageButtonClick;
+import shadows.placebo.Placebo;
+import shadows.placebo.net.MessageButtonClick;
 
 public class GuiAutoClick extends GuiContainer {
 
@@ -100,7 +101,7 @@ public class GuiAutoClick extends GuiContainer {
 				toggle.setStateTriggered(true);
 			}
 		}
-		ClickMachine.NETWORK.sendToServer(new MessageButtonClick(button.id));
+		Placebo.NETWORK.sendToServer(new MessageButtonClick(button.id));
 	}
 
 	public void setButtonState(int buttonId, boolean on) {
