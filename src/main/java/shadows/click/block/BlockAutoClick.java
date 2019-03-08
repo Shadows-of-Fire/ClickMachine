@@ -1,12 +1,10 @@
 package shadows.click.block;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -18,14 +16,15 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import shadows.click.ClickMachine;
+import shadows.placebo.block.BlockBasic;
+import shadows.placebo.interfaces.IItemBlock;
 
-public class BlockAutoClick extends Block {
+public class BlockAutoClick extends BlockBasic implements IItemBlock {
 
 	public static final PropertyDirection FACING = BlockDirectional.FACING;
 
 	public BlockAutoClick() {
-		super(Material.IRON);
-		setCreativeTab(CreativeTabs.REDSTONE);
+		super("auto_clicker", Material.IRON, 5, 5, ClickMachine.INFO);
 	}
 
 	@Override

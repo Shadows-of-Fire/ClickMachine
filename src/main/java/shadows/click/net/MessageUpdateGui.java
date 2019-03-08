@@ -40,17 +40,6 @@ public class MessageUpdateGui implements IMessage {
 	}
 
 	@Override
-	public void toBytes(ByteBuf buf) {
-		buf.writeByte(t.ordinal());
-		buf.writeInt(power);
-		if (t == Type.SYNC) {
-			buf.writeInt(speedIdx);
-			buf.writeBoolean(right);
-			buf.writeBoolean(sneak);
-		}
-	}
-
-	@Override
 	public void fromBytes(ByteBuf buf) {
 		t = Type.values()[buf.readByte()];
 		power = buf.readInt();
@@ -61,7 +50,18 @@ public class MessageUpdateGui implements IMessage {
 		}
 	}
 
-	public static class UpdateGuiHandler implements IMessageHandler<MessageUpdateGui, IMessage> {
+	@Override
+	public void toBytes(ByteBuf buf) {
+		buf.writeByte(t.ordinal());
+		buf.writeInt(power);
+		if (t == Type.SYNC) {
+			buf.writeInt(speedIdx);
+			buf.writeBoolean(right);
+			buf.writeBoolean(sneak);
+		}
+	}
+
+	public static class UpdatePowerHandler implements IMessageHandler<MessageUpdateGui, IMessage> {
 
 		@Override
 		public MessageUpdateGui onMessage(MessageUpdateGui message, MessageContext ctx) {

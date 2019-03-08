@@ -24,11 +24,11 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
-import shadows.placebo.Placebo;
 
 public class TileAutoClick extends TileEntity implements ITickable, Consumer<ItemStack> {
 
@@ -72,7 +72,7 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 
 		if (counter % ClickMachineConfig.powerUpdateFreq == 0 && power.getEnergyStored() != lastPower) {
 			if (us == null) us = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0);
-			Placebo.NETWORK.sendToAllTracking(new MessageUpdateGui(power.getEnergyStored()), us);
+			ClickMachine.NETWORK.sendToAllTracking(new MessageUpdateGui(power.getEnergyStored()), us);
 			lastPower = power.getEnergyStored();
 		}
 	}

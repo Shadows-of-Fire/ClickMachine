@@ -9,6 +9,7 @@ public class ClickMachineConfig {
 	public static int maxPowerStorage = 50000;
 	public static int[] powerPerSpeed = new int[] { 0, 3, 5, 10, 25, 50, 100, 250, 500 };
 	public static int powerUpdateFreq = 10;
+	public static boolean classicTex = false;
 
 	public static void init(Configuration cfg) {
 
@@ -34,6 +35,7 @@ public class ClickMachineConfig {
 
 		maxPowerStorage = cfg.getInt("Max Power Storage", Configuration.CATEGORY_GENERAL, maxPowerStorage, 0, Integer.MAX_VALUE, "How much power the auto clicker can store.  Also the max input rate.  Unused if \"Uses RF\" = false");
 		powerUpdateFreq = cfg.getInt("Power Update Frequency", Configuration.CATEGORY_GENERAL, 10, 1, Integer.MAX_VALUE, "How often, in ticks, the power value of the TE will be synced with the GUI.");
+		classicTex = cfg.getBoolean("Classic Textures", Configuration.CATEGORY_GENERAL, false, "If the old textures are used.");
 
 		if (cfg.hasChanged()) cfg.save();
 	}
