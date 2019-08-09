@@ -1,101 +1,93 @@
 package shadows.click.block;
 
-import net.minecraft.block.BlockDirectional;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.StateContainer.Builder;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import shadows.click.ClickMachine;
-import shadows.placebo.block.BlockBasic;
-import shadows.placebo.interfaces.IItemBlock;
 
-public class BlockAutoClick extends BlockBasic implements IItemBlock {
+public class BlockAutoClick extends Block {
 
-	public static final PropertyDirection FACING = BlockDirectional.FACING;
+	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
 	public BlockAutoClick() {
-		super("auto_clicker", Material.IRON, 5, 5, ClickMachine.INFO);
+		super(Block.Properties.create(Material.IRON).hardnessAndResistance(5));
 	}
 
 	@Override
-	public boolean hasTileEntity(IBlockState state) {
+	public boolean hasTileEntity() {
 		return true;
 	}
 
 	@Override
-	public TileEntity createTileEntity(World world, IBlockState state) {
+	public TileEntity createTileEntity(BlockState state, IBlockReader world) {
 		return new TileAutoClick();
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, FACING);
+	protected void fillStateContainer(Builder<Block, BlockState> builder) {
+		builder.add(FACING);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FACING, EnumFacing.VALUES[meta % 6]);
+	public BlockState rotate(BlockState state, IWorld world, BlockPos pos, Rotation direction) {
+		return state.with(FACING, direction.rotate(state.get(FACING)));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
-		return state.getValue(FACING).ordinal();
+	public BlockState mirror(BlockState state, Mirror mirror) {
+		return state.with(FACING, mirror.mirror(state.get(FACING)));
 	}
 
 	@Override
-	public boolean rotateBlock(World world, BlockPos pos, EnumFacing axis) {
-		EnumFacing facing = world.getBlockState(pos).getValue(FACING);
-		EnumFacing rotated = facing.rotateAround(axis.getAxis());
-		return world.setBlockState(pos, getDefaultState().withProperty(FACING, rotated));
-	}
-
-	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirror) {
-		return state.withProperty(FACING, mirror.mirror(state.getValue(FACING)));
-	}
-
-	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
-	}
-
-	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+	public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		TileEntity te = world.getTileEntity(pos);
-		if (!world.isRemote && te instanceof TileAutoClick && placer instanceof EntityPlayer) {
-			((TileAutoClick) te).setPlayer((EntityPlayer) placer);
+		if (!world.isRemote && te instanceof TileAutoClick && placer instanceof PlayerEntity) {
+			((TileAutoClick) te).setPlayer((PlayerEntity) placer);
 		}
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		EnumFacing face = placer.getHorizontalFacing().getOpposite();
-		if (placer.rotationPitch > 50) face = EnumFacing.UP;
-		else if (placer.rotationPitch < -50) face = EnumFacing.DOWN;
-		return getDefaultState().withProperty(FACING, face);
+	public BlockState getStateForPlacement(BlockItemUseContext context) {
+		PlayerEntity placer = context.getPlayer();
+		Direction face = placer.getHorizontalFacing().getOpposite();
+		if (placer.rotationPitch > 50) face = Direction.UP;
+		else if (placer.rotationPitch < -50) face = Direction.DOWN;
+		return getDefaultState().with(FACING, face);
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (!world.isRemote) player.openGui(ClickMachine.INSTANCE, 0, world, pos.getX(), pos.getY(), pos.getZ());
+	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+		player.openContainer(p_213829_1_)
 		return true;
 	}
 
 	@Override
-	public void breakBlock(World world, BlockPos pos, IBlockState state) {
+	@Deprecated
+	public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
 		TileEntity te = world.getTileEntity(pos);
 		if (te instanceof TileAutoClick) spawnAsEntity(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
-		super.breakBlock(world, pos, state);
+		super.onReplaced(state, world, pos, newState, isMoving);
 	}
 
 }

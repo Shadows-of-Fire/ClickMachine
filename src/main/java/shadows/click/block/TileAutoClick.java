@@ -6,31 +6,35 @@ import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.Direction;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
+import shadows.click.block.gui.ContainerAutoClick;
 import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
-public class TileAutoClick extends TileEntity implements ITickable, Consumer<ItemStack> {
+public class TileAutoClick extends TileEntity implements ITickableTileEntity, Consumer<ItemStack>, INamedContainerProvider {
 
 	public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
@@ -45,8 +49,12 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 	TargetPoint us;
 	int lastPower = 0;
 
+	public TileAutoClick() {
+		super(null);
+	}
+
 	@Override
-	public void update() {
+	public void tick() {
 		if (world.isRemote) return;
 		if (player == null) {
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
@@ -58,7 +66,7 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 			if (power.extractEnergy(use, true) == use) {
 				power.extractEnergy(use, false);
 				if (player != null && counter++ % getSpeed() == 0) {
-					EnumFacing facing = world.getBlockState(pos).getValue(BlockAutoClick.FACING);
+					Direction facing = world.getBlockState(pos).get(BlockAutoClick.FACING);
 					FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
 					ItemStack result = held.getStackInSlot(0);
 					if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
@@ -77,7 +85,7 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 		}
 	}
 
-	public void setPlayer(EntityPlayer player) {
+	public void setPlayer(PlayerEntity player) {
 		profile = player.getGameProfile();
 		markDirty();
 	}
@@ -88,21 +96,14 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 		return s;
 	}
 
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || capability == CapabilityEnergy.ENERGY || super.hasCapability(capability, facing);
-	}
+	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> held);
+	LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> power);
 
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(held);
-		if (capability == CapabilityEnergy.ENERGY) return CapabilityEnergy.ENERGY.cast(power);
-		return super.getCapability(capability, facing);
-	}
-
-	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState state1, IBlockState state2) {
-		return state1.getBlock() != state2.getBlock();
+	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
+		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return ihopt.cast();
+		if (cap == CapabilityEnergy.ENERGY) return ieopt.cast();
+		return super.getCapability(cap, side);
 	}
 
 	UsefulFakePlayer getPlayer() {
@@ -154,49 +155,49 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 	static final String tagEnergy = "fe";
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+	public CompoundNBT write(CompoundNBT tag) {
 		if (profile != null) {
-			tag.setUniqueId(tagUUID, profile.getId());
-			tag.setString(tagName, profile.getName());
+			tag.putUniqueId(tagUUID, profile.getId());
+			tag.putString(tagName, profile.getName());
 		}
-		tag.setTag(tagHandler, held.serializeNBT());
-		tag.setInteger(tagCounter, counter % getSpeed());
+		tag.put(tagHandler, held.serializeNBT());
+		tag.putInt(tagCounter, counter % getSpeed());
 		writeSyncData(tag);
-		return super.writeToNBT(tag);
+		return super.write(tag);
 	}
 
-	void writeSyncData(NBTTagCompound tag) {
-		tag.setInteger(tagSpeed, speedIdx);
-		tag.setBoolean(tagSneak, sneak);
-		tag.setBoolean(tagRightClick, rightClick);
-		tag.setInteger(tagEnergy, power.getEnergyStored());
+	void writeSyncData(CompoundNBT tag) {
+		tag.putInt(tagSpeed, speedIdx);
+		tag.putBoolean(tagSneak, sneak);
+		tag.putBoolean(tagRightClick, rightClick);
+		tag.putInt(tagEnergy, power.getEnergyStored());
 	}
 
-	void readSyncData(NBTTagCompound tag) {
-		speedIdx = tag.getInteger(tagSpeed);
+	void readSyncData(CompoundNBT tag) {
+		speedIdx = tag.getInt(tagSpeed);
 		sneak = tag.getBoolean(tagSneak);
 		rightClick = tag.getBoolean(tagRightClick);
-		setPower(tag.getInteger(tagEnergy));
+		setPower(tag.getInt(tagEnergy));
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound tag) {
-		super.readFromNBT(tag);
-		if (tag.hasKey(tagUUID) && tag.hasKey(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
-		if (tag.hasKey(tagHandler)) held.deserializeNBT(tag.getCompoundTag(tagHandler));
-		counter = tag.getInteger(tagCounter);
+	public void read(CompoundNBT tag) {
+		super.read(tag);
+		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
+		if (tag.contains(tagHandler)) held.deserializeNBT(tag.getCompound(tagHandler));
+		counter = tag.getInt(tagCounter);
 		readSyncData(tag);
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound tag = new NBTTagCompound();
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT tag = new CompoundNBT();
 		writeSyncData(tag);
-		return new SPacketUpdateTileEntity(pos, 05150, tag);
+		return new SUpdateTileEntityPacket(pos, 05150, tag);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		readSyncData(pkt.getNbtCompound());
 	}
 
@@ -213,6 +214,16 @@ public class TileAutoClick extends TileEntity implements ITickable, Consumer<Ite
 	@Override
 	public void accept(ItemStack s) {
 		held.setStackInSlot(0, s);
+	}
+
+	@Override
+	public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
+		return new ContainerAutoClick(this, player);
+	}
+
+	@Override
+	public ITextComponent getDisplayName() {
+		return null;
 	}
 
 }

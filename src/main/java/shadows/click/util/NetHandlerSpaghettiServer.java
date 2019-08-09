@@ -2,48 +2,63 @@ package shadows.click.util;
 
 import java.util.Set;
 
-import net.minecraft.network.EnumPacketDirection;
-import net.minecraft.network.NetHandlerPlayServer;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import net.minecraft.network.IPacket;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketChatMessage;
-import net.minecraft.network.play.client.CPacketClickWindow;
-import net.minecraft.network.play.client.CPacketClientSettings;
-import net.minecraft.network.play.client.CPacketClientStatus;
-import net.minecraft.network.play.client.CPacketCloseWindow;
-import net.minecraft.network.play.client.CPacketConfirmTeleport;
-import net.minecraft.network.play.client.CPacketConfirmTransaction;
-import net.minecraft.network.play.client.CPacketCreativeInventoryAction;
-import net.minecraft.network.play.client.CPacketCustomPayload;
-import net.minecraft.network.play.client.CPacketEnchantItem;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketInput;
-import net.minecraft.network.play.client.CPacketKeepAlive;
-import net.minecraft.network.play.client.CPacketPlaceRecipe;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketPlayerAbilities;
-import net.minecraft.network.play.client.CPacketPlayerDigging;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.network.play.client.CPacketRecipeInfo;
-import net.minecraft.network.play.client.CPacketResourcePackStatus;
-import net.minecraft.network.play.client.CPacketSeenAdvancements;
-import net.minecraft.network.play.client.CPacketSpectate;
-import net.minecraft.network.play.client.CPacketSteerBoat;
-import net.minecraft.network.play.client.CPacketTabComplete;
-import net.minecraft.network.play.client.CPacketUpdateSign;
-import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraft.network.play.client.CPacketVehicleMove;
-import net.minecraft.network.play.server.SPacketPlayerPosLook.EnumFlags;
+import net.minecraft.network.PacketDirection;
+import net.minecraft.network.play.ServerPlayNetHandler;
+import net.minecraft.network.play.client.CAnimateHandPacket;
+import net.minecraft.network.play.client.CChatMessagePacket;
+import net.minecraft.network.play.client.CClickWindowPacket;
+import net.minecraft.network.play.client.CClientSettingsPacket;
+import net.minecraft.network.play.client.CClientStatusPacket;
+import net.minecraft.network.play.client.CCloseWindowPacket;
+import net.minecraft.network.play.client.CConfirmTeleportPacket;
+import net.minecraft.network.play.client.CConfirmTransactionPacket;
+import net.minecraft.network.play.client.CCreativeInventoryActionPacket;
+import net.minecraft.network.play.client.CCustomPayloadPacket;
+import net.minecraft.network.play.client.CEditBookPacket;
+import net.minecraft.network.play.client.CEnchantItemPacket;
+import net.minecraft.network.play.client.CEntityActionPacket;
+import net.minecraft.network.play.client.CHeldItemChangePacket;
+import net.minecraft.network.play.client.CInputPacket;
+import net.minecraft.network.play.client.CKeepAlivePacket;
+import net.minecraft.network.play.client.CLockDifficultyPacket;
+import net.minecraft.network.play.client.CMoveVehiclePacket;
+import net.minecraft.network.play.client.CPickItemPacket;
+import net.minecraft.network.play.client.CPlaceRecipePacket;
+import net.minecraft.network.play.client.CPlayerAbilitiesPacket;
+import net.minecraft.network.play.client.CPlayerDiggingPacket;
+import net.minecraft.network.play.client.CPlayerPacket;
+import net.minecraft.network.play.client.CPlayerTryUseItemOnBlockPacket;
+import net.minecraft.network.play.client.CPlayerTryUseItemPacket;
+import net.minecraft.network.play.client.CQueryEntityNBTPacket;
+import net.minecraft.network.play.client.CQueryTileEntityNBTPacket;
+import net.minecraft.network.play.client.CRecipeInfoPacket;
+import net.minecraft.network.play.client.CRenameItemPacket;
+import net.minecraft.network.play.client.CResourcePackStatusPacket;
+import net.minecraft.network.play.client.CSeenAdvancementsPacket;
+import net.minecraft.network.play.client.CSelectTradePacket;
+import net.minecraft.network.play.client.CSetDifficultyPacket;
+import net.minecraft.network.play.client.CSpectatePacket;
+import net.minecraft.network.play.client.CSteerBoatPacket;
+import net.minecraft.network.play.client.CTabCompletePacket;
+import net.minecraft.network.play.client.CUpdateBeaconPacket;
+import net.minecraft.network.play.client.CUpdateCommandBlockPacket;
+import net.minecraft.network.play.client.CUpdateJigsawBlockPacket;
+import net.minecraft.network.play.client.CUpdateMinecartCommandBlockPacket;
+import net.minecraft.network.play.client.CUpdateSignPacket;
+import net.minecraft.network.play.client.CUpdateStructureBlockPacket;
+import net.minecraft.network.play.client.CUseEntityPacket;
+import net.minecraft.network.play.server.SPlayerPositionLookPacket.Flags;
 import net.minecraft.util.text.ITextComponent;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
-public class NetHandlerSpaghettiServer extends NetHandlerPlayServer {
+public class NetHandlerSpaghettiServer extends ServerPlayNetHandler {
 
 	public NetHandlerSpaghettiServer(UsefulFakePlayer player) {
-		super(null, new NetworkManager(EnumPacketDirection.CLIENTBOUND), player);
+		super(null, new NetworkManager(PacketDirection.CLIENTBOUND), player);
 	}
 
 	@Override
@@ -51,131 +66,7 @@ public class NetHandlerSpaghettiServer extends NetHandlerPlayServer {
 	}
 
 	@Override
-	public void func_194308_a(CPacketPlaceRecipe p_194308_1_) {
-	}
-
-	@Override
-	public void handleAnimation(CPacketAnimation packetIn) {
-	}
-
-	@Override
-	public void handleRecipeBookUpdate(CPacketRecipeInfo p_191984_1_) {
-	}
-
-	@Override
-	public void handleResourcePackStatus(CPacketResourcePackStatus packetIn) {
-	}
-
-	@Override
-	public void handleSeenAdvancements(CPacketSeenAdvancements p_194027_1_) {
-	}
-
-	@Override
-	public void handleSpectate(CPacketSpectate packetIn) {
-	}
-
-	@Override
 	public void onDisconnect(ITextComponent reason) {
-	}
-
-	@Override
-	public void processChatMessage(CPacketChatMessage packetIn) {
-	}
-
-	@Override
-	public void processClickWindow(CPacketClickWindow packetIn) {
-	}
-
-	@Override
-	public void processClientSettings(CPacketClientSettings packetIn) {
-	}
-
-	@Override
-	public void processClientStatus(CPacketClientStatus packetIn) {
-	}
-
-	@Override
-	public void processCloseWindow(CPacketCloseWindow packetIn) {
-	}
-
-	@Override
-	public void processConfirmTeleport(CPacketConfirmTeleport packetIn) {
-	}
-
-	@Override
-	public void processConfirmTransaction(CPacketConfirmTransaction packetIn) {
-	}
-
-	@Override
-	public void processCreativeInventoryAction(CPacketCreativeInventoryAction packetIn) {
-	}
-
-	@Override
-	public void processCustomPayload(CPacketCustomPayload packetIn) {
-	}
-
-	@Override
-	public void processEnchantItem(CPacketEnchantItem packetIn) {
-	}
-
-	@Override
-	public void processEntityAction(CPacketEntityAction packetIn) {
-	}
-
-	@Override
-	public void processHeldItemChange(CPacketHeldItemChange packetIn) {
-	}
-
-	@Override
-	public void processInput(CPacketInput packetIn) {
-	}
-
-	@Override
-	public void processKeepAlive(CPacketKeepAlive packetIn) {
-	}
-
-	@Override
-	public void processPlayer(CPacketPlayer packetIn) {
-	}
-
-	@Override
-	public void processPlayerAbilities(CPacketPlayerAbilities packetIn) {
-	}
-
-	@Override
-	public void processPlayerDigging(CPacketPlayerDigging packetIn) {
-	}
-
-	@Override
-	public void processSteerBoat(CPacketSteerBoat packetIn) {
-	}
-
-	@Override
-	public void processTabComplete(CPacketTabComplete packetIn) {
-	}
-
-	@Override
-	public void processTryUseItem(CPacketPlayerTryUseItem packetIn) {
-	}
-
-	@Override
-	public void processTryUseItemOnBlock(CPacketPlayerTryUseItemOnBlock packetIn) {
-	}
-
-	@Override
-	public void processUpdateSign(CPacketUpdateSign packetIn) {
-	}
-
-	@Override
-	public void processUseEntity(CPacketUseEntity packetIn) {
-	}
-
-	@Override
-	public void processVehicleMove(CPacketVehicleMove packetIn) {
-	}
-
-	@Override
-	public void sendPacket(Packet<?> packetIn) {
 	}
 
 	@Override
@@ -183,8 +74,191 @@ public class NetHandlerSpaghettiServer extends NetHandlerPlayServer {
 	}
 
 	@Override
-	public void setPlayerLocation(double x, double y, double z, float yaw, float pitch, Set<EnumFlags> relativeSet) {
+	public void func_217261_a(CLockDifficultyPacket p_217261_1_) {
+	}
 
+	@Override
+	public void func_217263_a(CSetDifficultyPacket p_217263_1_) {
+	}
+
+	@Override
+	public void func_217262_a(CUpdateJigsawBlockPacket p_217262_1_) {
+	}
+
+	@Override
+	public void handleAnimation(CAnimateHandPacket packetIn) {
+	}
+
+	@Override
+	public void processClientStatus(CClientStatusPacket packetIn) {
+	}
+
+	@Override
+	public void processPlayer(CPlayerPacket packetIn) {
+	}
+
+	@Override
+	public void processEnchantItem(CEnchantItemPacket packetIn) {
+	}
+
+	@Override
+	public void processCloseWindow(CCloseWindowPacket packetIn) {
+	}
+
+	@Override
+	public void handleSeenAdvancements(CSeenAdvancementsPacket packetIn) {
+	}
+
+	@Override
+	public void processVehicleMove(CMoveVehiclePacket packetIn) {
+	}
+
+	@Override
+	public void handleRecipeBookUpdate(CRecipeInfoPacket packetIn) {
+	}
+
+	@Override
+	public void handleResourcePackStatus(CResourcePackStatusPacket packetIn) {
+	}
+
+	@Override
+	public void processChatMessage(CChatMessagePacket packetIn) {
+	}
+
+	@Override
+	public void handleSpectate(CSpectatePacket packetIn) {
+	}
+
+	@Override
+	public void processClientSettings(CClientSettingsPacket packetIn) {
+	}
+
+	@Override
+	public void processClickWindow(CClickWindowPacket packetIn) {
+	}
+
+	@Override
+	public void processCustomPayload(CCustomPayloadPacket packetIn) {
+	}
+
+	@Override
+	public void processCreativeInventoryAction(CCreativeInventoryActionPacket packetIn) {
+	}
+
+	@Override
+	public void processConfirmTeleport(CConfirmTeleportPacket packetIn) {
+	}
+
+	@Override
+	public void processEntityAction(CEntityActionPacket packetIn) {
+	}
+
+	@Override
+	public void processConfirmTransaction(CConfirmTransactionPacket packetIn) {
+	}
+
+	@Override
+	public void processInput(CInputPacket packetIn) {
+	}
+
+	@Override
+	public void processEditBook(CEditBookPacket packetIn) {
+	}
+
+	@Override
+	public void processNBTQueryBlockEntity(CQueryTileEntityNBTPacket packetIn) {
+	}
+
+	@Override
+	public void processHeldItemChange(CHeldItemChangePacket packetIn) {
+	}
+
+	@Override
+	public void processPlaceRecipe(CPlaceRecipePacket packetIn) {
+	}
+
+	@Override
+	public void processKeepAlive(CKeepAlivePacket packetIn) {
+	}
+
+	@Override
+	public void processPlayerDigging(CPlayerDiggingPacket packetIn) {
+	}
+
+	@Override
+	public void processNBTQueryEntity(CQueryEntityNBTPacket packetIn) {
+	}
+
+	@Override
+	public void processSelectTrade(CSelectTradePacket packetIn) {
+	}
+
+	@Override
+	public void processPickItem(CPickItemPacket packetIn) {
+	}
+
+	@Override
+	public void processTabComplete(CTabCompletePacket packetIn) {
+	}
+
+	@Override
+	public void processPlayerAbilities(CPlayerAbilitiesPacket packetIn) {
+	}
+
+	@Override
+	public void processTryUseItemOnBlock(CPlayerTryUseItemOnBlockPacket packetIn) {
+	}
+
+	@Override
+	public void processSteerBoat(CSteerBoatPacket packetIn) {
+	}
+
+	@Override
+	public void processUpdateCommandBlock(CUpdateCommandBlockPacket packetIn) {
+	}
+
+	@Override
+	public void processRenameItem(CRenameItemPacket packetIn) {
+	}
+
+	@Override
+	public void processUpdateSign(CUpdateSignPacket packetIn) {
+	}
+
+	@Override
+	public void processTryUseItem(CPlayerTryUseItemPacket packetIn) {
+	}
+
+	@Override
+	public void processUseEntity(CUseEntityPacket packetIn) {
+	}
+
+	@Override
+	public void processUpdateCommandMinecart(CUpdateMinecartCommandBlockPacket packetIn) {
+	}
+
+	@Override
+	public void processUpdateStructureBlock(CUpdateStructureBlockPacket packetIn) {
+	}
+
+	@Override
+	public void processUpdateBeacon(CUpdateBeaconPacket packetIn) {
+	}
+
+	@Override
+	public void sendPacket(IPacket<?> packetIn, GenericFutureListener<? extends Future<? super Void>> futureListeners) {
+	}
+
+	@Override
+	public void setPlayerLocation(double x, double y, double z, float yaw, float pitch, Set<Flags> relativeSet) {
+	}
+
+	@Override
+	public void sendPacket(IPacket<?> packetIn) {
+	}
+
+	@Override
+	public void tick() {
 	}
 
 }
