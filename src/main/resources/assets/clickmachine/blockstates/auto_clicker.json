@@ -1,16 +1,7 @@
 {
 	"forge_marker": 1,
 	"defaults": {
-		"model": "cube",
-		"textures": {
-			"north": "clickmachine:blocks/default2",
-			"east": "clickmachine:blocks/default2",
-			"south": "clickmachine:blocks/front2",
-			"west": "clickmachine:blocks/default2",
-			"up": "clickmachine:blocks/default2",
-			"down": "clickmachine:blocks/default2",
-			"particle": "clickmachine:blocks/default2"
-		}
+		"model": "clickmachine:block/auto_clicker"
 	},
 	"variants": {
 		"facing": {

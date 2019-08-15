@@ -18,6 +18,8 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -33,6 +35,7 @@ import shadows.click.block.gui.ContainerAutoClick;
 import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
+import shadows.placebo.util.NetworkUtils;
 
 public class TileAutoClick extends TileEntity implements ITickableTileEntity, Consumer<ItemStack>, INamedContainerProvider {
 
@@ -50,7 +53,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	int lastPower = 0;
 
 	public TileAutoClick() {
-		super(null);
+		super(ClickMachine.TILE);
 	}
 
 	@Override
@@ -62,7 +65,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 		if (!world.isBlockPowered(pos)) {
 
-			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[speedIdx] : 0;
+			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[getSpeedIndex()] : 0;
 			if (power.extractEnergy(use, true) == use) {
 				power.extractEnergy(use, false);
 				if (player != null && counter++ % getSpeed() == 0) {
@@ -79,8 +82,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 		}
 
 		if (counter % ClickMachineConfig.powerUpdateFreq == 0 && power.getEnergyStored() != lastPower) {
-			if (us == null) us = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0);
-			ClickMachine.NETWORK.sendToAllTracking(new MessageUpdateGui(power.getEnergyStored()), us);
+			NetworkUtils.sendToTracking(ClickMachine.CHANNEL, new MessageUpdateGui(power.getEnergyStored()), (ServerWorld) world, pos);
 			lastPower = power.getEnergyStored();
 		}
 	}
@@ -115,7 +117,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	}
 
 	public int getSpeed() {
-		return ClickMachineConfig.speeds[speedIdx];
+		return ClickMachineConfig.speeds[getSpeedIndex()];
 	}
 
 	public int getSpeedIndex() {
@@ -167,14 +169,14 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	}
 
 	void writeSyncData(CompoundNBT tag) {
-		tag.putInt(tagSpeed, speedIdx);
+		tag.putInt(tagSpeed, getSpeedIndex());
 		tag.putBoolean(tagSneak, sneak);
 		tag.putBoolean(tagRightClick, rightClick);
 		tag.putInt(tagEnergy, power.getEnergyStored());
 	}
 
 	void readSyncData(CompoundNBT tag) {
-		speedIdx = tag.getInt(tagSpeed);
+		setSpeedIndex(tag.getInt(tagSpeed));
 		sneak = tag.getBoolean(tagSneak);
 		rightClick = tag.getBoolean(tagRightClick);
 		setPower(tag.getInt(tagEnergy));
@@ -218,12 +220,12 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	@Override
 	public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
-		return new ContainerAutoClick(this, player);
+		return new ContainerAutoClick(id, this, player);
 	}
 
 	@Override
 	public ITextComponent getDisplayName() {
-		return null;
+		return new TranslationTextComponent("gui.clickmachine.autoclick");
 	}
 
 }
