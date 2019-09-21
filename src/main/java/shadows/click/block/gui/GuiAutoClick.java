@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.fml.client.config.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
@@ -57,6 +58,7 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 
 	@Override
 	public void render(int mouseX, int mouseY, float partialTicks) {
+		this.renderBackground();
 		super.render(mouseX, mouseY, partialTicks);
 		this.renderHoveredToolTip(mouseX, mouseY);
 	}
@@ -83,8 +85,10 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	protected void renderHoveredToolTip(int x, int y) {
 		super.renderHoveredToolTip(x, y);
 		for (BetterButtonToggle b : buttons)
-			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> drawString(font, s, x, y, 0xFFFFFF));
-		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) drawString(font, I18n.format("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.maxPowerStorage), x, y, 0xFFFFFF);
+			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
+		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) {
+			GuiUtils.drawHoveringText(Arrays.asList(I18n.format("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
+		}
 	}
 
 	protected void actionPerformed(BetterButtonToggle toggle) {
