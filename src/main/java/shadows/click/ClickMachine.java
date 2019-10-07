@@ -36,6 +36,7 @@ import shadows.click.block.gui.ContainerAutoClick;
 import shadows.click.block.gui.GuiAutoClick;
 import shadows.click.net.MessageUpdateGui;
 import shadows.placebo.config.Configuration;
+import shadows.placebo.loot.LootSystem;
 import shadows.placebo.recipe.RecipeHelper;
 import shadows.placebo.util.NetworkUtils;
 
@@ -92,6 +93,7 @@ public class ClickMachine {
 	public void setup(FMLCommonSetupEvent e) {
 		Ingredient diorite = Ingredient.fromItems(Items.DIORITE);
 		HELPER.addShaped(AUTO_CLICKER, 3, 3, diorite, diorite, diorite, diorite, Blocks.CHORUS_FLOWER, diorite, diorite, Blocks.REDSTONE_BLOCK, diorite);
+		LootSystem.defaultBlockTable(AUTO_CLICKER);
 	}
 
 }
