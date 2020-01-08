@@ -76,7 +76,7 @@ public class BlockAutoClick extends Block {
 	}
 
 	@Override
-	public ActionResultType func_225533_a_(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+	public ActionResultType onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
 		TileEntity te = world.getTileEntity(pos);
 		if (te instanceof INamedContainerProvider && !world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, buf -> buf.writeBlockPos(pos));
 		return ActionResultType.SUCCESS;
