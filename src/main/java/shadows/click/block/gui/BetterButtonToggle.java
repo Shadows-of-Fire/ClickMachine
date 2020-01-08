@@ -1,6 +1,6 @@
 package shadows.click.block.gui;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.ToggleWidget;
@@ -20,7 +20,7 @@ public class BetterButtonToggle extends ToggleWidget {
 		if (this.visible) {
 			this.isHovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 			Minecraft.getInstance().getTextureManager().bindTexture(this.resourceLocation);
-			GlStateManager.disableDepthTest();
+			RenderSystem.disableDepthTest();
 			int i = this.xTexStart;
 			int j = this.yTexStart;
 
@@ -30,7 +30,7 @@ public class BetterButtonToggle extends ToggleWidget {
 			}
 
 			this.blit(this.x, this.y, i, j, this.width, this.height);
-			GlStateManager.enableDepthTest();
+			RenderSystem.enableDepthTest();
 		}
 	}
 

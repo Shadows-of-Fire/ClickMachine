@@ -103,7 +103,7 @@ public class FakePlayerUtil {
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
 		player.setLocationAndAngles(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
 		if (!toHold.isEmpty()) player.getAttributes().applyAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
-		player.setSneaking(sneaking);
+		player.func_226284_e_(sneaking);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class FakePlayerUtil {
 		player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
 		stackCallback.accept(resultStack);
 		if (!player.inventory.isEmpty()) player.inventory.dropAllItems();
-		player.setSneaking(false);
+		player.func_226284_e_(false);
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
+		Vec3d base = new Vec3d(player.func_226277_ct_(), player.func_226278_cu_(), player.func_226281_cx_());
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
@@ -183,7 +183,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3d base = new Vec3d(player.posX, player.posY, player.posZ);
+		Vec3d base = new Vec3d(player.func_226277_ct_(), player.func_226278_cu_(), player.func_226281_cx_());
 		Vec3d look = player.getLookVec();
 		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
