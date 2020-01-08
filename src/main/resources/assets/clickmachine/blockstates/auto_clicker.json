@@ -1,26 +1,28 @@
 {
-	"forge_marker": 1,
-	"defaults": {
-		"model": "clickmachine:block/auto_clicker"
-	},
 	"variants": {
-		"facing": {
-			"up": {
-				"x": 90
-			},
-			"down": {
-				"x": 270
-			},
-			"east": {
-				"y": 270
-			},
-			"south": {},
-			"west": {
-				"y": 90
-			},
-			"north": {
-				"y": 180
-			}
+		"facing=up": {
+			"x": 90,
+			"model": "clickmachine:block/auto_clicker"
+		},
+		"facing=down": {
+			"x": 270,
+			"model": "clickmachine:block/auto_clicker"
+		},
+		"facing=east": {
+			"y": 270,
+			"model": "clickmachine:block/auto_clicker"
+		},
+		"facing=south": {
+			"model": "clickmachine:block/auto_clicker"
+		},
+		"facing=west": {
+			"y": 90,
+			"model": "clickmachine:block/auto_clicker"
+		},
+		"facing=north": {
+			"y": 180,
+			"model": "clickmachine:block/auto_clicker"
 		}
+
 	}
 }
