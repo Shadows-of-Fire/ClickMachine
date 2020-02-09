@@ -13,7 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.client.config.GuiUtils;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
@@ -66,7 +66,7 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
-		int n = (int) (18 * 4 * Math.min(1, (1 - ((float) tile.getPower() / ClickMachineConfig.maxPowerStorage))));
+		int n = (int) (18 * 4 * Math.min(1, 1 - (float) tile.getPower() / ClickMachineConfig.maxPowerStorage));
 		this.blit(151, 7 + n, 230, n, 18, 18 * 4);
 		this.font.drawString(this.getNarrationMessage(), 8, 6, 4210752);
 		this.font.drawString(player.inventory.getDisplayName().getFormattedText(), 8, this.ySize - 96 + 2, 4210752);
