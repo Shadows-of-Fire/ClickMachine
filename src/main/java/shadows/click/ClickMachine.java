@@ -20,6 +20,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -35,6 +37,7 @@ import shadows.click.block.TileAutoClick;
 import shadows.click.block.gui.ContainerAutoClick;
 import shadows.click.block.gui.GuiAutoClick;
 import shadows.click.net.MessageUpdateGui;
+import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 import shadows.placebo.config.Configuration;
 import shadows.placebo.loot.LootSystem;
 import shadows.placebo.recipe.RecipeHelper;
@@ -94,6 +97,11 @@ public class ClickMachine {
 		Ingredient diorite = Ingredient.fromItems(Items.DIORITE);
 		HELPER.addShaped(AUTO_CLICKER, 3, 3, diorite, diorite, diorite, diorite, Blocks.CHORUS_FLOWER, diorite, diorite, Blocks.REDSTONE_BLOCK, diorite);
 		LootSystem.defaultBlockTable(AUTO_CLICKER);
+	}
+
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public void blockJoin(EntityJoinWorldEvent e) {
+		if (e.getEntity() instanceof UsefulFakePlayer) e.setCanceled(true);
 	}
 
 }
