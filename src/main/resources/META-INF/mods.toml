@@ -12,6 +12,8 @@ version="${file.jarVersion}" #mandatory
 
 displayName="Click Machine" #mandatory
 
+license="MIT License" #mandatory
+
 description='''
 Clicc.
 '''
