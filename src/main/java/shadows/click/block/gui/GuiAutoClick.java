@@ -4,15 +4,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.client.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
@@ -57,37 +58,38 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	}
 
 	@Override
-	public void render(int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground();
-		super.render(mouseX, mouseY, partialTicks);
-		this.renderHoveredToolTip(mouseX, mouseY);
+	public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
+		this.renderBackground(stack);
+		super.render(stack, mouseX, mouseY, partialTicks);
+		this.drawMouseoverTooltip(stack, mouseX, mouseY);
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+	protected void drawForeground(MatrixStack stack, int mouseX, int mouseY) {
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
 		int n = (int) (18 * 4 * Math.min(1, 1 - (float) tile.getPower() / ClickMachineConfig.maxPowerStorage));
-		this.blit(151, 7 + n, 230, n, 18, 18 * 4);
-		this.font.drawString(this.getNarrationMessage(), 8, 6, 4210752);
-		this.font.drawString(player.inventory.getDisplayName().getFormattedText(), 8, this.ySize - 96 + 2, 4210752);
+		this.drawTexture(stack, 151, 7 + n, 230, n, 18, 18 * 4);
+		this.textRenderer.draw(stack, this.getNarrationMessage(), 8, 6, 4210752);
+		this.textRenderer.draw(stack, player.inventory.getDisplayName().getString(), 8, this.ySize - 96 + 2, 4210752);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+	protected void drawBackground(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
-		this.blit(i, j, 0, 0, this.xSize, this.ySize);
+		this.drawTexture(stack, i, j, 0, 0, this.xSize, this.ySize);
 	}
 
 	@Override
-	protected void renderHoveredToolTip(int x, int y) {
-		super.renderHoveredToolTip(x, y);
+	protected void drawMouseoverTooltip(MatrixStack stack, int x, int y) {
+		super.drawMouseoverTooltip(stack, x, y);
 		for (BetterButtonToggle b : buttons)
-			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
+			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, textRenderer));
 		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) {
-			GuiUtils.drawHoveringText(Arrays.asList(I18n.format("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
+			GuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, textRenderer);
 		}
 	}
 
@@ -149,8 +151,8 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 			this.unlocalized = "gui.clickmachine." + name().toLowerCase(Locale.ROOT) + (ClickMachineConfig.usesRF && id < 9 ? ".rf.tooltip" : ".tooltip");
 		}
 
-		List<String> getTooltip() {
-			return Arrays.asList(I18n.format(unlocalized, formatArgs));
+		List<ITextComponent> getTooltip() {
+			return Arrays.asList(new TranslationTextComponent(unlocalized, formatArgs));
 		}
 
 		BetterButtonToggle getAndInitButton(GuiAutoClick gui) {

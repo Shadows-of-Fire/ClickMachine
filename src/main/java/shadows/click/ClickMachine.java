@@ -64,9 +64,9 @@ public class ClickMachine {
 	public static final TileEntityType<TileAutoClick> TILE = new TileEntityType<>(TileAutoClick::new, ImmutableSet.of(AUTO_CLICKER), null);
 
 	public ClickMachine() {
-		MinecraftForge.EVENT_BUS.register(this);
+		MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::blockJoin);
 		ClickMachineConfig.init(new Configuration(new File(FMLPaths.CONFIGDIR.get().toFile(), "clickmachine.cfg")));
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
 			for (int i = 0; i < 9; i++) {
 				if (ClickMachineConfig.usesRF) GuiAutoClick.setFormatArgs(i, ClickMachineConfig.speeds[i], ClickMachineConfig.powerPerSpeed[i]);
 				else GuiAutoClick.setFormatArgs(i, ClickMachineConfig.speeds[i]);
@@ -99,7 +99,6 @@ public class ClickMachine {
 		LootSystem.defaultBlockTable(AUTO_CLICKER);
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void blockJoin(EntityJoinWorldEvent e) {
 		if (e.getEntity() instanceof UsefulFakePlayer) e.setCanceled(true);
 	}

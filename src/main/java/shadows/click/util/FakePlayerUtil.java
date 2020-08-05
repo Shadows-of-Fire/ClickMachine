@@ -38,8 +38,8 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceContext.BlockMode;
 import net.minecraft.util.math.RayTraceContext.FluidMode;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.ForgeHooks;
@@ -95,14 +95,14 @@ public class FakePlayerUtil {
 		player.inventory.mainInventory.set(player.inventory.currentItem, toHold);
 		float pitch = direction == Direction.UP ? -90 : direction == Direction.DOWN ? 90 : 0;
 		float yaw = direction == Direction.SOUTH ? 0 : direction == Direction.WEST ? 90 : direction == Direction.NORTH ? 180 : -90;
-		Vec3i sideVec = direction.getDirectionVec();
+		Vector3i sideVec = direction.getDirectionVec();
 		Axis a = direction.getAxis();
 		AxisDirection ad = direction.getAxisDirection();
 		double x = a == Axis.X && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getX() / 1.9D;
 		double y = 0.5 + sideVec.getY() / 1.9D;
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
 		player.setLocationAndAngles(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
-		if (!toHold.isEmpty()) player.getAttributes().applyAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
+		if (!toHold.isEmpty()) player.getAttributes().addTemporaryModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
 		player.setSneaking(sneaking);
 	}
 
@@ -113,7 +113,7 @@ public class FakePlayerUtil {
 	 * @param oldStack The previous stack, from before use.
 	 */
 	public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, Consumer<ItemStack> stackCallback) {
-		if (!oldStack.isEmpty()) player.getAttributes().removeAttributeModifiers(oldStack.getAttributeModifiers(EquipmentSlotType.MAINHAND));
+		if (!oldStack.isEmpty()) player.getAttributes().removeModifiers(oldStack.getAttributeModifiers(EquipmentSlotType.MAINHAND));
 		player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
 		stackCallback.accept(resultStack);
 		if (!player.inventory.isEmpty()) player.inventory.dropAllItems();
@@ -130,9 +130,9 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3d base = new Vec3d(player.getX(), player.getY(), player.getZ());
-		Vec3d look = player.getLookVec();
-		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
+		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
+		Vector3d look = player.getLookVec();
+		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
 		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
@@ -183,9 +183,9 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3d base = new Vec3d(player.getX(), player.getY(), player.getZ());
-		Vec3d look = player.getLookVec();
-		Vec3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
+		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
+		Vector3d look = player.getLookVec();
+		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
 		RayTraceResult traceEntity = traceEntities(player, base, target, world);
 		RayTraceResult toUse = trace == null ? traceEntity : trace;
@@ -230,10 +230,10 @@ public class FakePlayerUtil {
 	 * @param world The world of the calling tile entity.
 	 * @return A ray trace result that will likely be of type entity, but may be type block, or null.
 	 */
-	public static RayTraceResult traceEntities(UsefulFakePlayer player, Vec3d base, Vec3d target, World world) {
+	public static RayTraceResult traceEntities(UsefulFakePlayer player, Vector3d base, Vector3d target, World world) {
 		Entity pointedEntity = null;
 		RayTraceResult result = null;
-		Vec3d vec3d3 = null;
+		Vector3d vec3d3 = null;
 		AxisAlignedBB search = new AxisAlignedBB(base.x, base.y, base.z, target.x, target.y, target.z).grow(.5, .5, .5);
 		List<Entity> list = world.getEntitiesInAABBexcluding(player, search, entity -> EntityPredicates.NOT_SPECTATING.test(entity) && entity != null && entity.canBeCollidedWith());
 		double d2 = 5;
@@ -242,7 +242,7 @@ public class FakePlayerUtil {
 			Entity entity1 = list.get(j);
 
 			AxisAlignedBB aabb = entity1.getBoundingBox().grow(entity1.getCollisionBorderSize());
-			Optional<Vec3d> optVec = aabb.rayTrace(base, target);
+			Optional<Vector3d> optVec = aabb.rayTrace(base, target);
 
 			if (aabb.contains(base)) {
 				if (d2 >= 0.0D) {
@@ -316,9 +316,9 @@ public class FakePlayerUtil {
 	 * A copy-paste of the SideOnly {@link Entity#rayTrace(double, float)}
 	 */
 	public static RayTraceResult rayTrace(UsefulFakePlayer player, World world, double reachDist, float partialTicks) {
-		Vec3d vec3d = player.getEyePosition(partialTicks);
-		Vec3d vec3d1 = player.getLook(partialTicks);
-		Vec3d vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
+		Vector3d vec3d = player.getEyePosition(partialTicks);
+		Vector3d vec3d1 = player.getLook(partialTicks);
+		Vector3d vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
 		return world.rayTraceBlocks(new RayTraceContext(vec3d, vec3d2, BlockMode.OUTLINE, FluidMode.NONE, player));
 	}
 

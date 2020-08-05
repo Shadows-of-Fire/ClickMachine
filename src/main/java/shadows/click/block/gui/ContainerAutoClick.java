@@ -42,7 +42,7 @@ public class ContainerAutoClick extends Container implements IButtonContainer {
 
 	public ContainerAutoClick(int id, PlayerInventory inv, PacketBuffer buf) {
 		super(ClickMachine.CONTAINER, id);
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> this.tile = (TileAutoClick) Minecraft.getInstance().world.getTileEntity(buf.readBlockPos()));
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> this.tile = (TileAutoClick) Minecraft.getInstance().world.getTileEntity(buf.readBlockPos()));
 		this.player = inv.player;
 
 		this.addSlot(new SlotItemHandler(tile.getHandler(), 0, 8, 35));

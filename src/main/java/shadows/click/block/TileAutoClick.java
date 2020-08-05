@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -183,8 +184,8 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	}
 
 	@Override
-	public void read(CompoundNBT tag) {
-		super.read(tag);
+	public void fromTag(BlockState state, CompoundNBT tag) {
+		super.fromTag(state, tag);
 		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
 		if (tag.contains(tagHandler)) held.deserializeNBT(tag.getCompound(tagHandler));
 		counter = tag.getInt(tagCounter);
