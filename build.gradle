@@ -40,14 +40,11 @@ repositories {
     maven {
         url "https://dvs1.progwml6.com/files/maven"
     }
-	maven {
-		url "http://tehnut.info/maven"
-	}
 	maven { 
 		url 'https://maven.tterrag.com/' 
 	}
 	maven {
-		url 'https://github.com/TehNut/temporary-maven-thing/tree/master/maven/'
+		url 'https://maven.tehnut.info'
 	}
 }
 
