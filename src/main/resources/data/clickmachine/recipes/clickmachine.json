@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DDD",
+    "DCD",
+    "DRD"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diorite"
+    },
+    "C": {
+      "item": "minecraft:chorus_flower"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "item": "clickmachine:auto_clicker"
+  }
+}

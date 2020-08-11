@@ -49,7 +49,6 @@ public class ClickMachine {
 	public static final String MODID = "clickmachine";
 
 	public static final Logger LOG = LogManager.getLogger(MODID);
-	public static final RecipeHelper HELPER = new RecipeHelper(MODID);
 
 	public static final BlockAutoClick AUTO_CLICKER = new BlockAutoClick();
 	//Formatter::off
@@ -94,8 +93,6 @@ public class ClickMachine {
 
 	@SubscribeEvent
 	public void setup(FMLCommonSetupEvent e) {
-		Ingredient diorite = Ingredient.fromItems(Items.DIORITE);
-		HELPER.addShaped(AUTO_CLICKER, 3, 3, diorite, diorite, diorite, diorite, Blocks.CHORUS_FLOWER, diorite, diorite, Blocks.REDSTONE_BLOCK, diorite);
 		LootSystem.defaultBlockTable(AUTO_CLICKER);
 	}
 
