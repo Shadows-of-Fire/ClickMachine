@@ -8,13 +8,10 @@ import org.apache.logging.log4j.Logger;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -40,7 +37,6 @@ import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 import shadows.placebo.config.Configuration;
 import shadows.placebo.loot.LootSystem;
-import shadows.placebo.recipe.RecipeHelper;
 import shadows.placebo.util.NetworkUtils;
 
 @Mod(ClickMachine.MODID)
