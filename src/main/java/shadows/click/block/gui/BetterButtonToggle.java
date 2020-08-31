@@ -19,18 +19,18 @@ public class BetterButtonToggle extends ToggleWidget {
 	@Override
 	public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
 		if (this.visible) {
-			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+			this.isHovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 			Minecraft.getInstance().getTextureManager().bindTexture(this.resourceLocation);
 			RenderSystem.disableDepthTest();
 			int i = this.xTexStart;
 			int j = this.yTexStart;
 
-			if (this.hovered || this.stateTriggered) {
+			if (this.isHovered || this.stateTriggered) {
 				i += this.xDiffTex;
 				j += this.yDiffTex;
 			}
 
-			this.drawTexture(stack, this.x, this.y, i, j, this.width, this.height);
+			this.blit(stack, this.x, this.y, i, j, this.width, this.height);
 			RenderSystem.enableDepthTest();
 		}
 	}

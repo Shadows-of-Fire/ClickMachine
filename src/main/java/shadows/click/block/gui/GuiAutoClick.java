@@ -14,10 +14,10 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.client.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
+import shadows.click.util.ForgeGuiUtils;
 import shadows.placebo.Placebo;
 import shadows.placebo.net.MessageButtonClick;
 
@@ -61,35 +61,35 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(stack);
 		super.render(stack, mouseX, mouseY, partialTicks);
-		this.drawMouseoverTooltip(stack, mouseX, mouseY);
+		this.renderHoveredTooltip(stack, mouseX, mouseY);
 	}
 
 	@Override
-	protected void drawForeground(MatrixStack stack, int mouseX, int mouseY) {
+	protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
 		int n = (int) (18 * 4 * Math.min(1, 1 - (float) tile.getPower() / ClickMachineConfig.maxPowerStorage));
-		this.drawTexture(stack, 151, 7 + n, 230, n, 18, 18 * 4);
-		this.textRenderer.draw(stack, this.getNarrationMessage(), 8, 6, 4210752);
-		this.textRenderer.draw(stack, player.inventory.getDisplayName().getString(), 8, this.ySize - 96 + 2, 4210752);
+		this.blit(stack, 151, 7 + n, 230, n, 18, 18 * 4);
+		this.font.drawString(stack, this.getNarrationMessage(), 8, 6, 4210752);
+		this.font.drawString(stack, player.inventory.getDisplayName().getString(), 8, this.ySize - 96 + 2, 4210752);
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
-	protected void drawBackground(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
+	protected void drawGuiContainerBackgroundLayer(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
-		this.drawTexture(stack, i, j, 0, 0, this.xSize, this.ySize);
+		this.blit(stack, i, j, 0, 0, this.xSize, this.ySize);
 	}
 
 	@Override
-	protected void drawMouseoverTooltip(MatrixStack stack, int x, int y) {
-		super.drawMouseoverTooltip(stack, x, y);
+	protected void renderHoveredTooltip(MatrixStack stack, int x, int y) {
+		super.renderHoveredTooltip(stack, x, y);
 		for (BetterButtonToggle b : buttons)
-			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, textRenderer));
+			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> ForgeGuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
 		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) {
-			GuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, textRenderer);
+			ForgeGuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
 		}
 	}
 

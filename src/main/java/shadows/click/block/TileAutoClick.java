@@ -184,8 +184,8 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	}
 
 	@Override
-	public void fromTag(BlockState state, CompoundNBT tag) {
-		super.fromTag(state, tag);
+	public void read(BlockState state, CompoundNBT tag) {
+		super.read(state, tag);
 		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
 		if (tag.contains(tagHandler)) held.deserializeNBT(tag.getCompound(tagHandler));
 		counter = tag.getInt(tagCounter);

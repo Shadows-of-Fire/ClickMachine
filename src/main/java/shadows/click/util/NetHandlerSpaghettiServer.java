@@ -25,6 +25,7 @@ import net.minecraft.network.play.client.CHeldItemChangePacket;
 import net.minecraft.network.play.client.CInputPacket;
 import net.minecraft.network.play.client.CKeepAlivePacket;
 import net.minecraft.network.play.client.CLockDifficultyPacket;
+import net.minecraft.network.play.client.CMarkRecipeSeenPacket;
 import net.minecraft.network.play.client.CMoveVehiclePacket;
 import net.minecraft.network.play.client.CPickItemPacket;
 import net.minecraft.network.play.client.CPlaceRecipePacket;
@@ -35,7 +36,6 @@ import net.minecraft.network.play.client.CPlayerTryUseItemOnBlockPacket;
 import net.minecraft.network.play.client.CPlayerTryUseItemPacket;
 import net.minecraft.network.play.client.CQueryEntityNBTPacket;
 import net.minecraft.network.play.client.CQueryTileEntityNBTPacket;
-import net.minecraft.network.play.client.CRecipeInfoPacket;
 import net.minecraft.network.play.client.CRenameItemPacket;
 import net.minecraft.network.play.client.CResourcePackStatusPacket;
 import net.minecraft.network.play.client.CSeenAdvancementsPacket;
@@ -114,7 +114,7 @@ public class NetHandlerSpaghettiServer extends ServerPlayNetHandler {
 	}
 
 	@Override
-	public void handleRecipeBookUpdate(CRecipeInfoPacket packetIn) {
+	public void handleRecipeBookUpdate(CMarkRecipeSeenPacket packetIn) {
 	}
 
 	@Override

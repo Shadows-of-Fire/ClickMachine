@@ -102,7 +102,7 @@ public class FakePlayerUtil {
 		double y = 0.5 + sideVec.getY() / 1.9D;
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
 		player.setLocationAndAngles(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
-		if (!toHold.isEmpty()) player.getAttributes().addTemporaryModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
+		if (!toHold.isEmpty()) player.getAttributeManager().reapplyModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
 		player.setSneaking(sneaking);
 	}
 
@@ -113,7 +113,7 @@ public class FakePlayerUtil {
 	 * @param oldStack The previous stack, from before use.
 	 */
 	public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, Consumer<ItemStack> stackCallback) {
-		if (!oldStack.isEmpty()) player.getAttributes().removeModifiers(oldStack.getAttributeModifiers(EquipmentSlotType.MAINHAND));
+		if (!oldStack.isEmpty()) player.getAttributeManager().removeModifiers(oldStack.getAttributeModifiers(EquipmentSlotType.MAINHAND));
 		player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
 		stackCallback.accept(resultStack);
 		if (!player.inventory.isEmpty()) player.inventory.dropAllItems();
@@ -130,7 +130,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
+		Vector3d base = new Vector3d(player.getPosX(), player.getPosY(), player.getPosZ());
 		Vector3d look = player.getLookVec();
 		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
@@ -183,7 +183,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
+		Vector3d base = new Vector3d(player.getPosX(), player.getPosY(), player.getPosZ());
 		Vector3d look = player.getLookVec();
 		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
 		RayTraceResult trace = world.rayTraceBlocks(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
@@ -205,7 +205,7 @@ public class FakePlayerUtil {
 			BlockPos blockpos = ((BlockRayTraceResult) toUse).getPos();
 			BlockState state = world.getBlockState(blockpos);
 			if (state != sourceState && state.getMaterial() != Material.AIR) {
-				player.interactionManager.processBlockBreakingAction(blockpos, Action.START_DESTROY_BLOCK, ((BlockRayTraceResult) toUse).getFace(), player.server.getBuildLimit());
+				player.interactionManager.func_225416_a(blockpos, Action.START_DESTROY_BLOCK, ((BlockRayTraceResult) toUse).getFace(), player.server.getBuildLimit());
 				return player.getHeldItemMainhand();
 			}
 		}
@@ -214,7 +214,7 @@ public class FakePlayerUtil {
 			for (int i = 1; i <= 5; i++) {
 				BlockState state = world.getBlockState(pos.offset(side, i));
 				if (state != sourceState && state.getMaterial() != Material.AIR) {
-					player.interactionManager.processBlockBreakingAction(pos.offset(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.server.getBuildLimit());
+					player.interactionManager.func_225416_a(pos.offset(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.server.getBuildLimit());
 					return player.getHeldItemMainhand();
 				}
 			}
