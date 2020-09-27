@@ -95,7 +95,7 @@ public class ForgeGuiUtils extends GuiUtils {
 			int tooltipTextWidth = 0;
 
 			for (ITextProperties textLine : textLines) {
-				int textLineWidth = font.func_238414_a_(textLine);
+				int textLineWidth = font.getStringPropertyWidth(textLine);
 				if (textLineWidth > tooltipTextWidth) tooltipTextWidth = textLineWidth;
 			}
 
@@ -123,11 +123,11 @@ public class ForgeGuiUtils extends GuiUtils {
 				List<ITextProperties> wrappedTextLines = new ArrayList<>();
 				for (int i = 0; i < textLines.size(); i++) {
 					ITextProperties textLine = textLines.get(i);
-					List<ITextProperties> wrappedLine = font.func_238420_b_().func_238362_b_(textLine, tooltipTextWidth, Style.EMPTY);
+					List<ITextProperties> wrappedLine = font.getCharacterManager().func_238362_b_(textLine, tooltipTextWidth, Style.EMPTY);
 					if (i == 0) titleLinesCount = wrappedLine.size();
 
 					for (ITextProperties line : wrappedLine) {
-						int lineWidth = font.func_238414_a_(line);
+						int lineWidth = font.getStringPropertyWidth(line);
 						if (lineWidth > wrappedTooltipWidth) wrappedTooltipWidth = lineWidth;
 						wrappedTextLines.add(line);
 					}
