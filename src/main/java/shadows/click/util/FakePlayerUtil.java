@@ -199,7 +199,6 @@ public class FakePlayerUtil {
 
 		if (toUse == null) return player.getHeldItemMainhand();
 
-		ItemStack itemstack = player.getHeldItemMainhand();
 		if (toUse.getType() == RayTraceResult.Type.ENTITY) {
 			if (processUseEntity(player, world, ((EntityRayTraceResult) toUse).getEntity(), null, CUseEntityPacket.Action.ATTACK)) return player.getHeldItemMainhand();
 		} else if (toUse.getType() == RayTraceResult.Type.BLOCK) {
@@ -221,7 +220,6 @@ public class FakePlayerUtil {
 			}
 		}
 
-		if (itemstack.isEmpty() && (toUse == null || toUse.getType() == RayTraceResult.Type.MISS)) ForgeHooks.onEmptyLeftClick(player);
 		return player.getHeldItemMainhand();
 	}
 
