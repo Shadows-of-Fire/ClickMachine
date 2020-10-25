@@ -14,10 +14,10 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.TileAutoClick;
-import shadows.click.util.ForgeGuiUtils;
 import shadows.placebo.Placebo;
 import shadows.placebo.net.MessageButtonClick;
 
@@ -87,9 +87,9 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	protected void renderHoveredTooltip(MatrixStack stack, int x, int y) {
 		super.renderHoveredTooltip(stack, x, y);
 		for (BetterButtonToggle b : buttons)
-			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> ForgeGuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
+			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
 		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) {
-			ForgeGuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
+			GuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
 		}
 	}
 

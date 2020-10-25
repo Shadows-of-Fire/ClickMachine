@@ -35,6 +35,6 @@ Clicc.
 [[dependencies.clickmachine]]
     modId="placebo"
     mandatory=true
-    versionRange="[4.3,)"
+    versionRange="[4.3.3,)"
     ordering="NONE"
     side="BOTH"

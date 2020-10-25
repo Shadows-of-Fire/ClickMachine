@@ -45,6 +45,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import shadows.placebo.util.NetHandlerSpaghettiServer;
 
 @EventBusSubscriber
 public class FakePlayerUtil {
