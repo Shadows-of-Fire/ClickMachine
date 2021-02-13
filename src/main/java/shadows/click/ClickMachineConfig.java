@@ -1,6 +1,15 @@
 package shadows.click;
 
+import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 import shadows.placebo.config.Configuration;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ClickMachineConfig {
 
@@ -9,6 +18,7 @@ public class ClickMachineConfig {
 	public static int maxPowerStorage = 50000;
 	public static int[] powerPerSpeed = new int[] { 0, 3, 5, 10, 25, 50, 100, 250, 500 };
 	public static int powerUpdateFreq = 10;
+	public static List<Item> blacklistedItems = new ArrayList<>();
 
 	public static void init(Configuration cfg) {
 
@@ -34,6 +44,9 @@ public class ClickMachineConfig {
 
 		maxPowerStorage = cfg.getInt("Max Power Storage", Configuration.CATEGORY_GENERAL, maxPowerStorage, 0, Integer.MAX_VALUE, "How much power the auto clicker can store.  Also the max input rate.  Unused if \"Uses RF\" = false");
 		powerUpdateFreq = cfg.getInt("Power Update Frequency", Configuration.CATEGORY_GENERAL, 10, 1, Integer.MAX_VALUE, "How often, in ticks, the power value of the TE will be synced with the GUI.");
+
+		String[] blacklist = cfg.getStringList("Item Blacklist", Configuration.CATEGORY_GENERAL, new String[]{ "minecraft:bedrock" }, "Items that must not be held by the clicker");
+		blacklistedItems = Arrays.stream(blacklist).map(ResourceLocation::new).map(ForgeRegistries.ITEMS::getValue).filter(Objects::nonNull).collect(Collectors.toList());
 
 		if (cfg.hasChanged()) cfg.save();
 	}

@@ -42,7 +42,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
-	ItemStackHandler held = new ItemStackHandler(1);
+	ItemStackHandler held;
 	EnergyStorage power = new EnergyStorage(ClickMachineConfig.maxPowerStorage);
 	GameProfile profile;
 	WeakReference<UsefulFakePlayer> player;
@@ -55,6 +55,14 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	public TileAutoClick() {
 		super(ClickMachine.TILE);
+
+		held = new ItemStackHandler(1){
+			@Override
+			public boolean isItemValid(int slot, ItemStack stack) {
+				if(ClickMachineConfig.blacklistedItems.stream().anyMatch(item -> item == stack.getItem())) return false;
+				return super.isItemValid(slot, stack);
+			}
+		};
 	}
 
 	@Override
