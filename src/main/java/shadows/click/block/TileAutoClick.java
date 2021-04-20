@@ -56,11 +56,10 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	public TileAutoClick() {
 		super(ClickMachine.TILE);
 
-		held = new ItemStackHandler(1){
+		held = new ItemStackHandler(1) {
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
-				if(ClickMachineConfig.blacklistedItems.stream().anyMatch(item -> item == stack.getItem())) return false;
-				return super.isItemValid(slot, stack);
+				return !ClickMachineConfig.blacklistedItems.contains(stack.getItem());
 			}
 		};
 	}
