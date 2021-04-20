@@ -85,6 +85,7 @@ public class BlockAutoClick extends Block {
 	@Override
 	@Deprecated
 	public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (state.getBlock() == this && newState.getBlock() == this) return;
 		TileEntity te = world.getTileEntity(pos);
 		if (te instanceof TileAutoClick) spawnAsEntity(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
 		super.onReplaced(state, world, pos, newState, isMoving);
