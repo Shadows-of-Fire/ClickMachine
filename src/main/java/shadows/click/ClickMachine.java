@@ -16,13 +16,11 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -31,7 +29,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import shadows.click.block.BlockAutoClick;
 import shadows.click.block.TileAutoClick;
 import shadows.click.block.gui.ContainerAutoClick;
-import shadows.click.block.gui.GuiAutoClick;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 import shadows.placebo.config.Configuration;
 import shadows.placebo.loot.LootSystem;
@@ -52,12 +49,6 @@ public class ClickMachine {
 	public ClickMachine() {
 		MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::blockJoin);
 		ClickMachineConfig.init(new Configuration(new File(FMLPaths.CONFIGDIR.get().toFile(), "clickmachine.cfg")));
-		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-			for (int i = 0; i < 9; i++) {
-				if (ClickMachineConfig.usesRF) GuiAutoClick.setFormatArgs(i, ClickMachineConfig.speeds[i], ClickMachineConfig.powerPerSpeed[i]);
-				else GuiAutoClick.setFormatArgs(i, ClickMachineConfig.speeds[i]);
-			}
-		});
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
 	}
 

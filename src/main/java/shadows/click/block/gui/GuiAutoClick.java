@@ -1,9 +1,7 @@
 package shadows.click.block.gui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -77,7 +75,7 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
 		this.blit(stack, i, j, 0, 0, this.xSize, this.ySize);
-		if (!ClickMachineConfig.usesRF) {
+		if (ClickMachineConfig.usesRF) {
 			int x = i + 150;
 			int y = j + 26;
 			this.blit(stack, x, y, xSize + 21, 0, 21, 64);
@@ -91,55 +89,12 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	@Override
 	protected void renderHoveredTooltip(MatrixStack stack, int x, int y) {
 		super.renderHoveredTooltip(stack, x, y);
-		if (!ClickMachineConfig.usesRF && isPointInRegion(150, 26, 21, 64, x, y)) {
+		if (ClickMachineConfig.usesRF && isPointInRegion(150, 26, 21, 64, x, y)) {
 			List<ITextComponent> comps = new ArrayList<>(2);
 			comps.add(new TranslationTextComponent("gui.clickmachine.power", container.data.get(0), ClickMachineConfig.maxPowerStorage));
 			comps.add(new TranslationTextComponent("gui.clickmachine.power.usage", ClickMachineConfig.powerPerSpeed[container.data.get(1)]));
 			GuiUtils.drawHoveringText(stack, comps, x, y, width, height, 0xFFFFFF, font);
 		}
-	}
-
-	public static void setFormatArgs(int button, Object... args) {
-		Buttons.VALUES[button].formatArgs = args;
-	}
-
-	enum Buttons {
-		SPEED_0(18 * 2 - 1, 18, 176, 0),
-		SPEED_1(18 * 3 - 1, 18, 176, 18),
-		SPEED_2(18 * 4 - 1, 18, 176, 18 * 2),
-		SPEED_3(18 * 2 - 1, 36, 176, 18 * 3),
-		SPEED_4(18 * 3 - 1, 36, 176, 18 * 4),
-		SPEED_5(18 * 4 - 1, 36, 176, 18 * 5),
-		SPEED_6(18 * 2 - 1, 54, 176, 18 * 6),
-		SPEED_7(18 * 3 - 1, 54, 176, 18 * 7),
-		SPEED_8(18 * 4 - 1, 54, 176, 18 * 8),
-		SNEAK(18 * 6 - 1, 18, 176, 18 * 9),
-		LEFT_CLICK(18 * 6 - 10, 54, 176, 18 * 10),
-		RIGHT_CLICK(18 * 7 - 10, 54, 176, 18 * 11);
-
-		static final Buttons[] VALUES = Buttons.values();
-
-		int id;
-		int x;
-		int y;
-		int u;
-		int v;
-		String unlocalized;
-		Object[] formatArgs = new Object[0];
-
-		Buttons(int x, int y, int u, int v) {
-			this.id = ordinal();
-			this.x = x - 1;
-			this.y = y - 2;
-			this.u = u;
-			this.v = v;
-			this.unlocalized = "gui.clickmachine." + name().toLowerCase(Locale.ROOT) + (ClickMachineConfig.usesRF && id < 9 ? ".rf.tooltip" : ".tooltip");
-		}
-
-		List<ITextComponent> getTooltip() {
-			return Arrays.asList(new TranslationTextComponent(unlocalized, formatArgs));
-		}
-
 	}
 
 }
