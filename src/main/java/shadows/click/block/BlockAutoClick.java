@@ -9,6 +9,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer.Builder;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -28,9 +29,11 @@ import net.minecraftforge.fml.network.NetworkHooks;
 public class BlockAutoClick extends Block {
 
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
+	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	public BlockAutoClick() {
 		super(Block.Properties.create(Material.IRON).hardnessAndResistance(5));
+		this.setDefaultState(this.getDefaultState().with(ACTIVE, true));
 	}
 
 	@Override
@@ -45,7 +48,7 @@ public class BlockAutoClick extends Block {
 
 	@Override
 	protected void fillStateContainer(Builder<Block, BlockState> builder) {
-		builder.add(FACING);
+		builder.add(FACING, ACTIVE);
 	}
 
 	@Override

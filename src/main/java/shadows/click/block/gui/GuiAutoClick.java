@@ -1,5 +1,6 @@
 package shadows.click.block.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -9,6 +10,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
@@ -17,44 +20,39 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.client.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
-import shadows.click.block.TileAutoClick;
-import shadows.placebo.Placebo;
-import shadows.placebo.net.MessageButtonClick;
 
 public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 
 	public static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ClickMachine.MODID, "textures/gui/auto_click.png");
 	PlayerEntity player = Minecraft.getInstance().player;
-	TileAutoClick tile;
-	BetterButtonToggle[] buttons = new BetterButtonToggle[12];
 
 	public GuiAutoClick(ContainerAutoClick container, PlayerInventory inv, ITextComponent name) {
 		super(container, inv, name);
-		this.tile = container.tile;
-		++ySize;
+		this.xSize = 176;
+		this.ySize = 196;
 	}
 
 	@Override
 	public void init() {
 		super.init();
-		for (Buttons b : Buttons.values())
-			buttons[b.ordinal()] = this.addButton(b.getAndInitButton(this));
-		buttons[tile.getSpeedIndex()].setStateTriggered(true);
-		buttons[9].setStateTriggered(tile.isSneaking());
-		buttons[tile.isRightClicking() ? 11 : 10].setStateTriggered(true);
+		int x = this.width / 2 - this.xSize / 2 + 30;
+		int y = this.height / 2 - this.ySize / 2 + 26;
+		this.addButton(new SpeedSlider(this, x, y, 100, 20));
+		this.addButton(new ClickerCheckboxButton(this, x, y + 22, 20, 20, new TranslationTextComponent("gui.clickmachine.sneaking"), 2));
+		this.addButton(new ClickerCheckboxButton(this, x, y + 44, 20, 20, new TranslationTextComponent("gui.clickmachine.right_click"), 3));
 	}
 
-	public void updateTile(int speedIdx, boolean sneaking, boolean rightClick, int power) {
-
-		for (BetterButtonToggle b : buttons) {
-			if (b.id < 9) b.setStateTriggered(b.id == speedIdx);
+	@Override
+	public void tick() {
+		super.tick();
+		for (Widget b : this.buttons) {
+			if (b instanceof ITickable) ((ITickable) b).tick();
 		}
-		buttons[9].setStateTriggered(sneaking);
-		for (BetterButtonToggle b : buttons) {
-			if (b.id > 9) b.setStateTriggered(rightClick ? b.id == 11 : b.id == 10);
-		}
+	}
 
-		tile.setPower(power);
+	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		return this.getListener() != null && this.isDragging() && button == 0 ? this.getListener().mouseDragged(mouseX, mouseY, button, dragX, dragY) : super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 	}
 
 	@Override
@@ -67,8 +65,6 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 	@Override
 	protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
 		Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURE);
-		int n = (int) (18 * 4 * Math.min(1, 1 - (float) tile.getPower() / ClickMachineConfig.maxPowerStorage));
-		this.blit(stack, 151, 7 + n, 230, n, 18, 18 * 4);
 		this.font.drawString(stack, this.getNarrationMessage(), 8, 6, 4210752);
 		this.font.drawString(stack, player.inventory.getDisplayName().getString(), 8, this.ySize - 96 + 2, 4210752);
 	}
@@ -81,41 +77,30 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
 		this.blit(stack, i, j, 0, 0, this.xSize, this.ySize);
+		if (!ClickMachineConfig.usesRF) {
+			int x = i + 150;
+			int y = j + 26;
+			this.blit(stack, x, y, xSize + 21, 0, 21, 64);
+			int maxP = ClickMachineConfig.maxPowerStorage;
+			double p = container.data.get(0);
+			double ratio = p / maxP;
+			this.blit(stack, x, y, xSize, 0, 21, 64 - (int) (ratio * 64));
+		}
 	}
 
 	@Override
 	protected void renderHoveredTooltip(MatrixStack stack, int x, int y) {
 		super.renderHoveredTooltip(stack, x, y);
-		for (BetterButtonToggle b : buttons)
-			if (b.isMouseOver(x, y)) Buttons.VALUES[b.id].getTooltip().forEach(s -> GuiUtils.drawHoveringText(stack, Arrays.asList(s), x, y, width, height, 0xFFFFFF, font));
-		if (isPointInRegion(151, 7, 18, 18 * 4 - 1, x, y)) {
-			GuiUtils.drawHoveringText(stack, Arrays.asList(new TranslationTextComponent("gui.clickmachine.power.tooltip", tile.getPower(), ClickMachineConfig.usesRF ? ClickMachineConfig.maxPowerStorage : 0)), x, y, width, height, 0xFFFFFF, font);
+		if (!ClickMachineConfig.usesRF && isPointInRegion(150, 26, 21, 64, x, y)) {
+			List<ITextComponent> comps = new ArrayList<>(2);
+			comps.add(new TranslationTextComponent("gui.clickmachine.power", container.data.get(0), ClickMachineConfig.maxPowerStorage));
+			comps.add(new TranslationTextComponent("gui.clickmachine.power.usage", ClickMachineConfig.powerPerSpeed[container.data.get(1)]));
+			GuiUtils.drawHoveringText(stack, comps, x, y, width, height, 0xFFFFFF, font);
 		}
-	}
-
-	protected void actionPerformed(BetterButtonToggle toggle) {
-		if (toggle.id < 9) for (BetterButtonToggle b : buttons) {
-			if (b.id < 9 && b.id != toggle.id) b.setStateTriggered(false);
-			toggle.setStateTriggered(true);
-		}
-		else if (toggle.id == 9) toggle.setStateTriggered(!toggle.isStateTriggered());
-		else if (toggle.id > 9) for (BetterButtonToggle b : buttons) {
-			if (b.id > 9 && b.id != toggle.id) b.setStateTriggered(false);
-			toggle.setStateTriggered(true);
-		}
-		Placebo.CHANNEL.sendToServer(new MessageButtonClick(toggle.id));
-	}
-
-	public void setButtonState(int buttonId, boolean on) {
-		buttons[buttonId].setStateTriggered(on);
 	}
 
 	public static void setFormatArgs(int button, Object... args) {
 		Buttons.VALUES[button].formatArgs = args;
-	}
-
-	public TileAutoClick getTile() {
-		return tile;
 	}
 
 	enum Buttons {
@@ -153,13 +138,6 @@ public class GuiAutoClick extends ContainerScreen<ContainerAutoClick> {
 
 		List<ITextComponent> getTooltip() {
 			return Arrays.asList(new TranslationTextComponent(unlocalized, formatArgs));
-		}
-
-		BetterButtonToggle getAndInitButton(GuiAutoClick gui) {
-			BetterButtonToggle b = new BetterButtonToggle(id, gui.guiLeft + x, gui.guiTop + y, 18, 18, false);
-			b.initTextureValues(u, v, 18, 0, GUI_TEXTURE);
-			b.controller = gui;
-			return b;
 		}
 
 	}

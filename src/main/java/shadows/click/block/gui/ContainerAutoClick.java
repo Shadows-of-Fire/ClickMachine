@@ -1,74 +1,64 @@
 package shadows.click.block.gui;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntArray;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import shadows.click.ClickMachine;
-import shadows.click.block.TileAutoClick;
-import shadows.click.net.MessageUpdateGui;
 import shadows.placebo.net.MessageButtonClick.IButtonContainer;
 
 public class ContainerAutoClick extends Container implements IButtonContainer {
 
-	TileAutoClick tile;
-	PlayerEntity player;
+	protected PlayerEntity player;
+	protected IWorldPosCallable wPos;
+	//[power, speed, sneak, rightClick]
+	protected final IIntArray data;
 
-	public ContainerAutoClick(int id, TileAutoClick tile, PlayerEntity player) {
-		super(ClickMachine.CONTAINER, id);
-		this.tile = tile;
-		this.player = player;
-
-		this.addSlot(new SlotItemHandler(tile.getHandler(), 0, 8, 35));
-
-		for (int i1 = 0; i1 < 3; ++i1) {
-			for (int k1 = 0; k1 < 9; ++k1) {
-				this.addSlot(new Slot(player.inventory, k1 + i1 * 9 + 9, 8 + k1 * 18, 84 + i1 * 18));
-			}
-		}
-
-		for (int j1 = 0; j1 < 9; ++j1) {
-			this.addSlot(new Slot(player.inventory, j1, 8 + j1 * 18, 142));
-		}
+	public ContainerAutoClick(int id, PlayerInventory playerInventory) {
+		this(id, playerInventory, IWorldPosCallable.DUMMY, new ItemStackHandler(1), new IntArray(4));
 	}
 
-	public ContainerAutoClick(int id, PlayerInventory inv, PacketBuffer buf) {
+	public ContainerAutoClick(int id, PlayerInventory pInv, IWorldPosCallable wPos, ItemStackHandler inv, IIntArray data) {
 		super(ClickMachine.CONTAINER, id);
-		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> this.tile = (TileAutoClick) Minecraft.getInstance().world.getTileEntity(buf.readBlockPos()));
-		this.player = inv.player;
 
-		this.addSlot(new SlotItemHandler(tile.getHandler(), 0, 8, 35));
+		this.player = pInv.player;
+		this.wPos = wPos;
+		this.data = data;
 
-		for (int i1 = 0; i1 < 3; ++i1) {
-			for (int k1 = 0; k1 < 9; ++k1) {
-				this.addSlot(new Slot(player.inventory, k1 + i1 * 9 + 9, 8 + k1 * 18, 84 + i1 * 18));
+		this.addSlot(new SlotItemHandler(inv, 0, 8, 50)); //Add clicker item slot
+
+		//Player inv slots
+		for (int row = 0; row < 3; ++row) {
+			for (int col = 0; col < 9; ++col) {
+				this.addSlot(new Slot(player.inventory, col + row * 9 + 9, 8 + col * 18, 114 + row * 18));
 			}
 		}
 
-		for (int j1 = 0; j1 < 9; ++j1) {
-			this.addSlot(new Slot(player.inventory, j1, 8 + j1 * 18, 142));
+		//Player hotbar slots
+		for (int col = 0; col < 9; ++col) {
+			this.addSlot(new Slot(player.inventory, col, 8 + col * 18, 172));
 		}
+
+		this.trackIntArray(data);
 	}
 
 	@Override
 	public boolean canInteractWith(PlayerEntity player) {
-		return !tile.isRemoved();
+		return wPos.applyOrElse((w, p) -> w.getBlockState(p).getBlock() == ClickMachine.AUTO_CLICKER, true);
 	}
 
 	@Override
 	public void onButtonClick(int button) {
-		if (button < 12) {
-			if (button < 9) tile.setSpeedIndex(button);
-			else if (button == 9) tile.setSneaking(!tile.isSneaking());
-			else tile.setRightClicking(button == 11);
+		if (button == 2) data.set(2, data.get(2) == 0 ? 1 : 0);
+		else if (button == 3) data.set(3, data.get(3) == 0 ? 1 : 0);
+		else if (button >= 4 && button <= 12) {
+			this.data.set(1, button - 4);
 		}
 	}
 
@@ -92,22 +82,6 @@ public class ContainerAutoClick extends Container implements IButtonContainer {
 		}
 
 		return transferred;
-	}
-
-	@Override
-	public void onContainerClosed(PlayerEntity player) {
-		if (!player.world.isRemote) ((ServerPlayerEntity) player).connection.sendPacket(this.tile.getUpdatePacket());
-	}
-
-	boolean sent = false;
-
-	@Override
-	public void detectAndSendChanges() {
-		super.detectAndSendChanges();
-		if (!sent && tile.hasWorld() && !tile.getWorld().isRemote) {
-			sent = true;
-			ClickMachine.CHANNEL.sendTo(new MessageUpdateGui(tile), ((ServerPlayerEntity) player).connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
-		}
 	}
 
 }

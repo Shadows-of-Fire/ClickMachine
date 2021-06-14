@@ -18,25 +18,23 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.block.gui.ContainerAutoClick;
-import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
-import shadows.placebo.util.NetworkUtils;
 
 public class TileAutoClick extends TileEntity implements ITickableTileEntity, Consumer<ItemStack>, INamedContainerProvider {
 
@@ -44,14 +42,53 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	ItemStackHandler held;
 	EnergyStorage power = new EnergyStorage(ClickMachineConfig.maxPowerStorage);
+	int speedIdx = 0;
+	boolean sneak = false;
+	boolean rightClick = true;
+
 	GameProfile profile;
 	WeakReference<UsefulFakePlayer> player;
+
 	int counter = 0;
-	boolean rightClick = true;
-	boolean sneak = false;
-	int speedIdx = 0;
-	TargetPoint us;
-	int lastPower = 0;
+
+	protected final IIntArray data = new IIntArray() {
+		public int get(int index) {
+			switch (index) {
+			case 0:
+				return power.getEnergyStored();
+			case 1:
+				return speedIdx;
+			case 2:
+				return sneak ? 1 : 0;
+			case 3:
+				return rightClick ? 1 : 0;
+			default:
+				return 0;
+			}
+		}
+
+		public void set(int index, int value) {
+			switch (index) {
+			case 0:
+				power.extractEnergy(power.getEnergyStored(), false);
+				power.receiveEnergy(value, false);
+				break;
+			case 1:
+				speedIdx = value;
+				break;
+			case 2:
+				sneak = value != 0;
+				break;
+			case 3:
+				rightClick = value != 0;
+			}
+			markDirty();
+		}
+
+		public int size() {
+			return 4;
+		}
+	};
 
 	public TileAutoClick() {
 		super(ClickMachine.TILE);
@@ -71,8 +108,9 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
 		}
 
-		if (!world.isBlockPowered(pos)) {
+		BlockState state = world.getBlockState(pos);
 
+		if (!world.isBlockPowered(pos)) {
 			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[getSpeedIndex()] : 0;
 			if (power.extractEnergy(use, true) == use) {
 				power.extractEnergy(use, false);
@@ -86,24 +124,19 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 					markDirty();
 				}
 			}
-
-		}
-
-		if (counter % ClickMachineConfig.powerUpdateFreq == 0 && power.getEnergyStored() != lastPower) {
-			NetworkUtils.sendToTracking(ClickMachine.CHANNEL, new MessageUpdateGui(power.getEnergyStored()), (ServerWorld) world, pos);
-			lastPower = power.getEnergyStored();
+			if (!state.get(BlockAutoClick.ACTIVE)) {
+				world.setBlockState(pos, state.with(BlockAutoClick.ACTIVE, true), 2);
+			}
+		} else {
+			if (state.get(BlockAutoClick.ACTIVE)) {
+				world.setBlockState(pos, state.with(BlockAutoClick.ACTIVE, false), 2);
+			}
 		}
 	}
 
 	public void setPlayer(PlayerEntity player) {
 		profile = player.getGameProfile();
 		markDirty();
-	}
-
-	public ItemStack insert(ItemStack stack) {
-		ItemStack s = held.insertItem(0, stack, false);
-		markDirty();
-		return s;
 	}
 
 	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> held);
@@ -228,7 +261,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	@Override
 	public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
-		return new ContainerAutoClick(id, this, player);
+		return new ContainerAutoClick(id, inv, IWorldPosCallable.of(world, pos), held, data);
 	}
 
 	@Override

@@ -16,7 +16,6 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent.Register;
@@ -28,20 +27,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.network.IContainerFactory;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
 import shadows.click.block.BlockAutoClick;
 import shadows.click.block.TileAutoClick;
 import shadows.click.block.gui.ContainerAutoClick;
 import shadows.click.block.gui.GuiAutoClick;
-import shadows.click.net.MessageUpdateGui;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 import shadows.placebo.config.Configuration;
 import shadows.placebo.loot.LootSystem;
 import shadows.placebo.recipe.RecipeHelper;
-import shadows.placebo.util.NetworkUtils;
 
 @Mod(ClickMachine.MODID)
 public class ClickMachine {
@@ -52,15 +46,7 @@ public class ClickMachine {
 	public static final RecipeHelper HELPER = new RecipeHelper(MODID);
 
 	public static final BlockAutoClick AUTO_CLICKER = new BlockAutoClick();
-	//Formatter::off
-    public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(MODID, MODID))
-            .clientAcceptedVersions(s->true)
-            .serverAcceptedVersions(s->true)
-            .networkProtocolVersion(() -> "1.0.0")
-            .simpleChannel();
-    //Formatter::on
-	public static final ContainerType<ContainerAutoClick> CONTAINER = new ContainerType<>((IContainerFactory<ContainerAutoClick>) ContainerAutoClick::new);
+	public static final ContainerType<ContainerAutoClick> CONTAINER = new ContainerType<>(ContainerAutoClick::new);
 	public static final TileEntityType<TileAutoClick> TILE = new TileEntityType<>(TileAutoClick::new, ImmutableSet.of(AUTO_CLICKER), null);
 
 	public ClickMachine() {
@@ -72,7 +58,6 @@ public class ClickMachine {
 				else GuiAutoClick.setFormatArgs(i, ClickMachineConfig.speeds[i]);
 			}
 		});
-		NetworkUtils.registerMessage(CHANNEL, 0, new MessageUpdateGui());
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
 	}
 
