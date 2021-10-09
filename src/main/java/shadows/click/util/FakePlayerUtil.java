@@ -44,6 +44,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import shadows.placebo.util.NetHandlerSpaghettiServer;
 
@@ -71,6 +72,11 @@ public class FakePlayerUtil {
 		@Override
 		public float getCooledAttackStrength(float adjustTicks) {
 			return 1; //Prevent the attack strength from always being 0.03 due to not ticking.
+		}
+
+		@Override
+		public Entity changeDimension(ServerWorld server, ITeleporter teleporter) {
+			return getPlayer(server, this.getGameProfile());
 		}
 	}
 
