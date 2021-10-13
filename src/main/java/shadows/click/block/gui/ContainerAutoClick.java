@@ -21,7 +21,7 @@ public class ContainerAutoClick extends Container implements IButtonContainer {
 	protected final IIntArray data;
 
 	public ContainerAutoClick(int id, PlayerInventory playerInventory) {
-		this(id, playerInventory, IWorldPosCallable.DUMMY, new ItemStackHandler(1), new IntArray(4));
+		this(id, playerInventory, IWorldPosCallable.NULL, new ItemStackHandler(1), new IntArray(4));
 	}
 
 	public ContainerAutoClick(int id, PlayerInventory pInv, IWorldPosCallable wPos, ItemStackHandler inv, IIntArray data) {
@@ -45,12 +45,12 @@ public class ContainerAutoClick extends Container implements IButtonContainer {
 			this.addSlot(new Slot(player.inventory, col, 8 + col * 18, 172));
 		}
 
-		this.trackIntArray(data);
+		this.addDataSlots(data);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
-		return wPos.applyOrElse((w, p) -> w.getBlockState(p).getBlock() == ClickMachine.AUTO_CLICKER, true);
+	public boolean stillValid(PlayerEntity player) {
+		return wPos.evaluate((w, p) -> w.getBlockState(p).getBlock() == ClickMachine.AUTO_CLICKER, true);
 	}
 
 	@Override
@@ -63,22 +63,22 @@ public class ContainerAutoClick extends Container implements IButtonContainer {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
+	public ItemStack quickMoveStack(PlayerEntity player, int slotIndex) {
 		ItemStack transferred = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(slotIndex);
+		Slot slot = this.slots.get(slotIndex);
 
-		int otherSlots = this.inventorySlots.size() - 36;
+		int otherSlots = this.slots.size() - 36;
 
-		if (slot != null && slot.getHasStack()) {
-			ItemStack current = slot.getStack();
+		if (slot != null && slot.hasItem()) {
+			ItemStack current = slot.getItem();
 			transferred = current.copy();
 
 			if (slotIndex < otherSlots) {
-				if (!this.mergeItemStack(current, otherSlots, this.inventorySlots.size(), true)) {
+				if (!this.moveItemStackTo(current, otherSlots, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!this.mergeItemStack(current, 0, otherSlots, false)) { return ItemStack.EMPTY; }
-			slot.onSlotChanged();
+			} else if (!this.moveItemStackTo(current, 0, otherSlots, false)) { return ItemStack.EMPTY; }
+			slot.setChanged();
 		}
 
 		return transferred;

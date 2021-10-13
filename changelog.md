@@ -1,3 +1,7 @@
+## 4.5.0
+* Added a dummy rainbow power bar when power is disabled, to hopefully make people realize power is disabled.
+* Removed the Energy Capability when power is disabled, so nothing tries to display it.
+
 ## 4.4.1
 * Made it so the Click Machine fake player cannot be teleported, which crashes normally.
 

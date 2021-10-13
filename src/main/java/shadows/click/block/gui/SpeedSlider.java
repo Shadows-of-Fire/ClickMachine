@@ -23,10 +23,10 @@ public class SpeedSlider extends AbstractSlider implements ITickable {
 
 	@Override
 	public void tick() {
-		if (sliderValue == -0.001) {
-			int tileVal = this.gui.getContainer().data.get(1);
-			sliderValue = normalizeValue(tileVal);
-			func_230979_b_();
+		if (value == -0.001) {
+			int tileVal = this.gui.getMenu().data.get(1);
+			value = normalizeValue(tileVal);
+			updateMessage();
 		}
 	}
 
@@ -34,8 +34,8 @@ public class SpeedSlider extends AbstractSlider implements ITickable {
 	 * MojMap: updateMessage
 	 */
 	@Override
-	protected void func_230979_b_() {
-		int spd = denormalizeValue(sliderValue);
+	protected void updateMessage() {
+		int spd = denormalizeValue(value);
 		int ticksPerClick = ClickMachineConfig.speeds[spd];
 		double cps = (1D / ticksPerClick) * 20;
 		this.setMessage(new TranslationTextComponent("gui.clickmachine.speed", String.format("%.2f", cps)));
@@ -45,8 +45,8 @@ public class SpeedSlider extends AbstractSlider implements ITickable {
 	 * MojMap: applyValue
 	 */
 	@Override
-	protected void func_230972_a_() {
-		Placebo.CHANNEL.sendToServer(new MessageButtonClick(4 + (int) denormalizeValue(this.sliderValue)));
+	protected void applyValue() {
+		Placebo.CHANNEL.sendToServer(new MessageButtonClick(4 + (int) denormalizeValue(this.value)));
 	}
 
 	/**

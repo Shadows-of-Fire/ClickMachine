@@ -13,6 +13,6 @@ public class ClickMachineClient {
 
 	@SubscribeEvent
 	public static void setup(FMLClientSetupEvent e) {
-		ScreenManager.registerFactory(ClickMachine.CONTAINER, GuiAutoClick::new);
+		ScreenManager.register(ClickMachine.CONTAINER, GuiAutoClick::new);
 	}
 }

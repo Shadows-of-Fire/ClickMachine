@@ -26,14 +26,16 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 
+import net.minecraft.block.AbstractBlock;
+
 public class BlockAutoClick extends Block {
 
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	public BlockAutoClick() {
-		super(Block.Properties.create(Material.IRON).hardnessAndResistance(5));
-		this.setDefaultState(this.getDefaultState().with(ACTIVE, true));
+		super(AbstractBlock.Properties.of(Material.METAL).strength(5));
+		this.registerDefaultState(this.defaultBlockState().setValue(ACTIVE, true));
 	}
 
 	@Override
@@ -47,24 +49,24 @@ public class BlockAutoClick extends Block {
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
 		builder.add(FACING, ACTIVE);
 	}
 
 	@Override
 	public BlockState rotate(BlockState state, IWorld world, BlockPos pos, Rotation direction) {
-		return state.with(FACING, direction.rotate(state.get(FACING)));
+		return state.setValue(FACING, direction.rotate(state.getValue(FACING)));
 	}
 
 	@Override
 	public BlockState mirror(BlockState state, Mirror mirror) {
-		return state.with(FACING, mirror.mirror(state.get(FACING)));
+		return state.setValue(FACING, mirror.mirror(state.getValue(FACING)));
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		TileEntity te = world.getTileEntity(pos);
-		if (!world.isRemote && te instanceof TileAutoClick && placer instanceof PlayerEntity) {
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		TileEntity te = world.getBlockEntity(pos);
+		if (!world.isClientSide && te instanceof TileAutoClick && placer instanceof PlayerEntity) {
 			((TileAutoClick) te).setPlayer((PlayerEntity) placer);
 		}
 	}
@@ -72,26 +74,26 @@ public class BlockAutoClick extends Block {
 	@Override
 	public BlockState getStateForPlacement(BlockItemUseContext context) {
 		PlayerEntity placer = context.getPlayer();
-		Direction face = placer.getHorizontalFacing().getOpposite();
-		if (placer.rotationPitch > 50) face = Direction.UP;
-		else if (placer.rotationPitch < -50) face = Direction.DOWN;
-		return getDefaultState().with(FACING, face);
+		Direction face = placer.getDirection().getOpposite();
+		if (placer.xRot > 50) face = Direction.UP;
+		else if (placer.xRot < -50) face = Direction.DOWN;
+		return defaultBlockState().setValue(FACING, face);
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof INamedContainerProvider && !world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, buf -> buf.writeBlockPos(pos));
+	public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+		TileEntity te = world.getBlockEntity(pos);
+		if (te instanceof INamedContainerProvider && !world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, buf -> buf.writeBlockPos(pos));
 		return ActionResultType.SUCCESS;
 	}
 
 	@Override
 	@Deprecated
-	public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() == this && newState.getBlock() == this) return;
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof TileAutoClick) spawnAsEntity(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
-		super.onReplaced(state, world, pos, newState, isMoving);
+		TileEntity te = world.getBlockEntity(pos);
+		if (te instanceof TileAutoClick) popResource(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
+		super.onRemove(state, world, pos, newState, isMoving);
 	}
 
 }

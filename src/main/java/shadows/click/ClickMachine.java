@@ -55,7 +55,7 @@ public class ClickMachine {
 	@SubscribeEvent
 	public void blocks(Register<Block> e) {
 		e.getRegistry().register(AUTO_CLICKER.setRegistryName(MODID, "auto_clicker"));
-		ForgeRegistries.ITEMS.register(new BlockItem(AUTO_CLICKER, new Item.Properties().group(ItemGroup.REDSTONE)).setRegistryName(AUTO_CLICKER.getRegistryName()));
+		ForgeRegistries.ITEMS.register(new BlockItem(AUTO_CLICKER, new Item.Properties().tab(ItemGroup.TAB_REDSTONE)).setRegistryName(AUTO_CLICKER.getRegistryName()));
 	}
 
 	@SubscribeEvent
@@ -70,7 +70,7 @@ public class ClickMachine {
 
 	@SubscribeEvent
 	public void setup(FMLCommonSetupEvent e) {
-		Ingredient diorite = Ingredient.fromItems(Items.DIORITE);
+		Ingredient diorite = Ingredient.of(Items.DIORITE);
 		HELPER.addShaped(AUTO_CLICKER, 3, 3, diorite, diorite, diorite, diorite, Blocks.CHORUS_FLOWER, diorite, diorite, Blocks.REDSTONE_BLOCK, diorite);
 		LootSystem.defaultBlockTable(AUTO_CLICKER);
 	}

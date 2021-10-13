@@ -36,24 +36,24 @@ public class ClickerCheckboxButton extends CheckboxButton {
 	}
 
 	@Override
-	public boolean isChecked() {
-		return gui.getContainer().data.get(index) != 0;
+	public boolean selected() {
+		return gui.getMenu().data.get(index) != 0;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
 	public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		Minecraft minecraft = Minecraft.getInstance();
-		minecraft.getTextureManager().bindTexture(TEXTURE);
+		minecraft.getTextureManager().bind(TEXTURE);
 		RenderSystem.enableDepthTest();
-		FontRenderer fontrenderer = minecraft.fontRenderer;
+		FontRenderer fontrenderer = minecraft.font;
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-		blit(matrixStack, this.x, this.y, this.isFocused() ? 20.0F : 0.0F, this.isChecked() ? 20.0F : 0.0F, 20, this.height, 64, 64);
+		blit(matrixStack, this.x, this.y, this.isFocused() ? 20.0F : 0.0F, this.selected() ? 20.0F : 0.0F, 20, this.height, 64, 64);
 		this.renderBg(matrixStack, minecraft, mouseX, mouseY);
-		fontrenderer.drawString(matrixStack, this.getMessage().getString(), this.x + 24, this.y + (this.height - 8) / 2, 4210752);
+		fontrenderer.draw(matrixStack, this.getMessage().getString(), this.x + 24, this.y + (this.height - 8) / 2, 4210752);
 	}
 
 }

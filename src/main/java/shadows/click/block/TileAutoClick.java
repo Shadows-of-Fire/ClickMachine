@@ -82,10 +82,10 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 			case 3:
 				rightClick = value != 0;
 			}
-			markDirty();
+			setChanged();
 		}
 
-		public int size() {
+		public int getCount() {
 			return 4;
 		}
 	};
@@ -103,40 +103,40 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	@Override
 	public void tick() {
-		if (world.isRemote) return;
+		if (level.isClientSide) return;
 		if (player == null) {
-			player = new WeakReference<>(FakePlayerUtil.getPlayer(world, profile != null ? profile : DEFAULT_CLICKER));
+			player = new WeakReference<>(FakePlayerUtil.getPlayer(level, profile != null ? profile : DEFAULT_CLICKER));
 		}
 
-		BlockState state = world.getBlockState(pos);
+		BlockState state = level.getBlockState(worldPosition);
 
-		if (!world.isBlockPowered(pos)) {
+		if (!level.hasNeighborSignal(worldPosition)) {
 			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[getSpeedIndex()] : 0;
 			if (power.extractEnergy(use, true) == use) {
 				power.extractEnergy(use, false);
 				if (player != null && counter++ % getSpeed() == 0) {
-					Direction facing = world.getBlockState(pos).get(BlockAutoClick.FACING);
-					FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.pos, facing, held.getStackInSlot(0).copy(), sneak);
+					Direction facing = level.getBlockState(worldPosition).getValue(BlockAutoClick.FACING);
+					FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.worldPosition, facing, held.getStackInSlot(0).copy(), sneak);
 					ItemStack result = held.getStackInSlot(0);
-					if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
-					else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.world, this.pos, facing, world.getBlockState(pos));
+					if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(worldPosition));
+					else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(worldPosition));
 					FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), this);
-					markDirty();
+					setChanged();
 				}
 			}
-			if (!state.get(BlockAutoClick.ACTIVE)) {
-				world.setBlockState(pos, state.with(BlockAutoClick.ACTIVE, true), 2);
+			if (!state.getValue(BlockAutoClick.ACTIVE)) {
+				level.setBlock(worldPosition, state.setValue(BlockAutoClick.ACTIVE, true), 2);
 			}
 		} else {
-			if (state.get(BlockAutoClick.ACTIVE)) {
-				world.setBlockState(pos, state.with(BlockAutoClick.ACTIVE, false), 2);
+			if (state.getValue(BlockAutoClick.ACTIVE)) {
+				level.setBlock(worldPosition, state.setValue(BlockAutoClick.ACTIVE, false), 2);
 			}
 		}
 	}
 
 	public void setPlayer(PlayerEntity player) {
 		profile = player.getGameProfile();
-		markDirty();
+		setChanged();
 	}
 
 	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> held);
@@ -145,7 +145,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
 		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return ihopt.cast();
-		if (cap == CapabilityEnergy.ENERGY) return ieopt.cast();
+		if (cap == CapabilityEnergy.ENERGY && ClickMachineConfig.usesRF) return ieopt.cast();
 		return super.getCapability(cap, side);
 	}
 
@@ -167,7 +167,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	public void setSpeedIndex(int speedIdx) {
 		this.speedIdx = speedIdx;
-		markDirty();
+		setChanged();
 	}
 
 	public boolean isSneaking() {
@@ -176,7 +176,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	public void setSneaking(boolean sneak) {
 		this.sneak = sneak;
-		markDirty();
+		setChanged();
 	}
 
 	public boolean isRightClicking() {
@@ -185,7 +185,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	public void setRightClicking(boolean rightClick) {
 		this.rightClick = rightClick;
-		markDirty();
+		setChanged();
 	}
 
 	static final String tagUUID = "uuid";
@@ -198,15 +198,15 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	static final String tagEnergy = "fe";
 
 	@Override
-	public CompoundNBT write(CompoundNBT tag) {
+	public CompoundNBT save(CompoundNBT tag) {
 		if (profile != null) {
-			tag.putUniqueId(tagUUID, profile.getId());
+			tag.putUUID(tagUUID, profile.getId());
 			tag.putString(tagName, profile.getName());
 		}
 		tag.put(tagHandler, held.serializeNBT());
 		tag.putInt(tagCounter, counter % getSpeed());
 		writeSyncData(tag);
-		return super.write(tag);
+		return super.save(tag);
 	}
 
 	void writeSyncData(CompoundNBT tag) {
@@ -224,9 +224,9 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT tag) {
-		super.read(state, tag);
-		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUniqueId(tagUUID), tag.getString(tagName));
+	public void load(BlockState state, CompoundNBT tag) {
+		super.load(state, tag);
+		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
 		if (tag.contains(tagHandler)) held.deserializeNBT(tag.getCompound(tagHandler));
 		counter = tag.getInt(tagCounter);
 		readSyncData(tag);
@@ -236,12 +236,12 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT tag = new CompoundNBT();
 		writeSyncData(tag);
-		return new SUpdateTileEntityPacket(pos, 05150, tag);
+		return new SUpdateTileEntityPacket(worldPosition, 05150, tag);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		readSyncData(pkt.getNbtCompound());
+		readSyncData(pkt.getTag());
 	}
 
 	public int getPower() {
@@ -251,7 +251,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 	public void setPower(int energy) {
 		power.extractEnergy(power.getMaxEnergyStored(), false);
 		power.receiveEnergy(energy, false);
-		markDirty();
+		setChanged();
 	}
 
 	@Override
@@ -261,7 +261,7 @@ public class TileAutoClick extends TileEntity implements ITickableTileEntity, Co
 
 	@Override
 	public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
-		return new ContainerAutoClick(id, inv, IWorldPosCallable.of(world, pos), held, data);
+		return new ContainerAutoClick(id, inv, IWorldPosCallable.create(level, worldPosition), held, data);
 	}
 
 	@Override
