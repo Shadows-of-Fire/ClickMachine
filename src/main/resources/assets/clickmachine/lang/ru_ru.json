@@ -1,0 +1,10 @@
+{
+  "gui.clickmachine.autoclick": "Авто-Использователь",
+  "block.clickmachine.auto_clicker": "Авто-Использователь",
+  "gui.clickmachine.speed": "%s клик/с",
+  "gui.clickmachine.sneaking": "Режим SHIFT+ЛКМ",
+  "gui.clickmachine.right_click": "Режим ПКМ",
+  "gui.clickmachine.power": "FE: %s/%s",
+  "gui.clickmachine.power.usage": "Использует %s FE/t",
+  "gui.clickmachine.rainbow_magic": "Работает на Радужной Магии!"
+}
