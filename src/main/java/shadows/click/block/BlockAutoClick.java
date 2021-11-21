@@ -1,5 +1,6 @@
 package shadows.click.block;
 
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
@@ -21,12 +22,11 @@ import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
-
-import net.minecraft.block.AbstractBlock;
 
 public class BlockAutoClick extends Block {
 
@@ -94,6 +94,25 @@ public class BlockAutoClick extends Block {
 		TileEntity te = world.getBlockEntity(pos);
 		if (te instanceof TileAutoClick) popResource(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
 		super.onRemove(state, world, pos, newState, isMoving);
+	}
+
+	@Override
+	public boolean hasAnalogOutputSignal(BlockState pState) {
+		return true;
+	}
+
+	@Override
+	@Deprecated
+	public int getAnalogOutputSignal(BlockState pBlockState, World pLevel, BlockPos pPos) {
+		TileEntity te = pLevel.getBlockEntity(pPos);
+		if (te instanceof TileAutoClick) {
+			ItemStack i = ((TileAutoClick) te).held.getStackInSlot(0);
+			if (i.isEmpty()) return 0;
+			if (i.getMaxStackSize() == 1 && i.isDamageableItem()) {
+				return MathHelper.floor(15F * (i.getMaxDamage() - i.getDamageValue()) / i.getMaxDamage());
+			} else return MathHelper.floor(15F * i.getCount() / i.getMaxStackSize());
+		}
+		return 0;
 	}
 
 }
