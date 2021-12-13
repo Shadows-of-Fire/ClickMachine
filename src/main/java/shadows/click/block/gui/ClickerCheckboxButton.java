@@ -1,25 +1,23 @@
 package shadows.click.block.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.CheckboxButton;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import shadows.placebo.Placebo;
-import shadows.placebo.net.MessageButtonClick;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
-public class ClickerCheckboxButton extends CheckboxButton {
+public class ClickerCheckboxButton extends Checkbox {
 
 	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/checkbox.png");
 
-	protected final GuiAutoClick gui;
+	protected final AutoClickScreen gui;
 	protected final int index;
 
-	public ClickerCheckboxButton(GuiAutoClick gui, int x, int y, int width, int height, ITextComponent title, int index) {
+	public ClickerCheckboxButton(AutoClickScreen gui, int x, int y, int width, int height, Component title, int index) {
 		super(x, y, width, height, title, false);
 		this.gui = gui;
 		this.index = index;
@@ -27,7 +25,7 @@ public class ClickerCheckboxButton extends CheckboxButton {
 
 	@Override
 	public void onPress() {
-		Placebo.CHANNEL.sendToServer(new MessageButtonClick(this.index));
+		Minecraft.getInstance().gameMode.handleInventoryButtonClick(gui.getMenu().containerId, this.index - 1);
 	}
 
 	@Override
@@ -37,17 +35,17 @@ public class ClickerCheckboxButton extends CheckboxButton {
 
 	@Override
 	public boolean selected() {
-		return gui.getMenu().data.get(index) != 0;
+		return gui.getMenu().getData().get(index) != 0;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		Minecraft minecraft = Minecraft.getInstance();
-		minecraft.getTextureManager().bind(TEXTURE);
+		RenderSystem.setShaderTexture(0, TEXTURE);
 		RenderSystem.enableDepthTest();
-		FontRenderer fontrenderer = minecraft.font;
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
+		Font fontrenderer = minecraft.font;
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);

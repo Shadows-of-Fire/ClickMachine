@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
@@ -11,52 +12,51 @@ import javax.annotation.Nullable;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.Pose;
-import net.minecraft.entity.item.ExperienceOrbEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPlayerDiggingPacket.Action;
-import net.minecraft.network.play.client.CUseEntityPacket;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.Direction.AxisDirection;
-import net.minecraft.util.EntityPredicates;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceContext.BlockMode;
-import net.minecraft.util.math.RayTraceContext.FluidMode;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.ClipContext.Block;
+import net.minecraft.world.level.ClipContext.Fluid;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import shadows.placebo.util.NetHandlerSpaghettiServer;
+import shadows.placebo.util.DeadPacketListenerImpl;
 
 @EventBusSubscriber
 public class FakePlayerUtil {
 
-	private static final Map<World, Map<GameProfile, UsefulFakePlayer>> PLAYERS = new WeakHashMap<>();
+	private static final Map<Level, Map<GameProfile, UsefulFakePlayer>> PLAYERS = new WeakHashMap<>();
 
 	public static class UsefulFakePlayer extends FakePlayer {
 
-		public UsefulFakePlayer(World world, GameProfile name) {
-			super((ServerWorld) world, name);
+		public UsefulFakePlayer(Level world, GameProfile name) {
+			super((ServerLevel) world, name);
 		}
 
 		@Override
@@ -65,8 +65,12 @@ public class FakePlayerUtil {
 		}
 
 		@Override
-		public void refreshContainer(Container containerToSend, NonNullList<ItemStack> itemsList) {
-			//Prevent crashing when objects with containers are clicked on.
+		public void initMenu(AbstractContainerMenu p_143400_) {
+		}
+
+		@Override
+		public OptionalInt openMenu(MenuProvider p_9033_) {
+			return OptionalInt.empty();
 		}
 
 		@Override
@@ -75,7 +79,7 @@ public class FakePlayerUtil {
 		}
 
 		@Override
-		public Entity changeDimension(ServerWorld server, ITeleporter teleporter) {
+		public Entity changeDimension(ServerLevel server, ITeleporter teleporter) {
 			return getPlayer(server, this.getGameProfile());
 		}
 	}
@@ -83,10 +87,10 @@ public class FakePlayerUtil {
 	/**
 	 * Only store this as a WeakReference, or you'll cause memory leaks.
 	 */
-	public static UsefulFakePlayer getPlayer(World world, GameProfile profile) {
+	public static UsefulFakePlayer getPlayer(Level world, GameProfile profile) {
 		return PLAYERS.computeIfAbsent(world, p -> new HashMap<>()).computeIfAbsent(profile, p -> {
 			UsefulFakePlayer player = new UsefulFakePlayer(world, profile);
-			player.connection = new NetHandlerSpaghettiServer(player);
+			player.connection = new DeadPacketListenerImpl(player);
 			return player;
 		});
 	}
@@ -99,17 +103,17 @@ public class FakePlayerUtil {
 	 * @param toHold The stack the player will be using.  Should probably come from an ItemStackHandler or similar.
 	 */
 	public static void setupFakePlayerForUse(UsefulFakePlayer player, BlockPos pos, Direction direction, ItemStack toHold, boolean sneaking) {
-		player.inventory.items.set(player.inventory.selected, toHold);
+		player.getInventory().items.set(player.getInventory().selected, toHold);
 		float pitch = direction == Direction.UP ? -90 : direction == Direction.DOWN ? 90 : 0;
 		float yaw = direction == Direction.SOUTH ? 0 : direction == Direction.WEST ? 90 : direction == Direction.NORTH ? 180 : -90;
-		Vector3i sideVec = direction.getNormal();
+		Vec3i sideVec = direction.getNormal();
 		Axis a = direction.getAxis();
 		AxisDirection ad = direction.getAxisDirection();
 		double x = a == Axis.X && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getX() / 1.9D;
 		double y = 0.5 + sideVec.getY() / 1.9D;
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
 		player.moveTo(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
-		if (!toHold.isEmpty()) player.getAttributes().addTransientAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlotType.MAINHAND));
+		if (!toHold.isEmpty()) player.getAttributes().addTransientAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlot.MAINHAND));
 		player.setShiftKeyDown(sneaking);
 	}
 
@@ -120,10 +124,10 @@ public class FakePlayerUtil {
 	 * @param oldStack The previous stack, from before use.
 	 */
 	public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, Consumer<ItemStack> stackCallback) {
-		if (!oldStack.isEmpty()) player.getAttributes().removeAttributeModifiers(oldStack.getAttributeModifiers(EquipmentSlotType.MAINHAND));
-		player.inventory.items.set(player.inventory.selected, ItemStack.EMPTY);
+		if (!oldStack.isEmpty()) player.getAttributes().removeAttributeModifiers(oldStack.getAttributeModifiers(EquipmentSlot.MAINHAND));
+		player.getInventory().items.set(player.getInventory().selected, ItemStack.EMPTY);
 		stackCallback.accept(resultStack);
-		if (!player.inventory.isEmpty()) player.inventory.dropAll();
+		if (!player.getInventory().isEmpty()) player.getInventory().dropAll();
 		player.setShiftKeyDown(false);
 	}
 
@@ -136,47 +140,47 @@ public class FakePlayerUtil {
 	 * @param sourceState The state of the calling tile entity, so we don't click ourselves.
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
-	public static ItemStack rightClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
-		Vector3d look = player.getLookAngle();
-		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
-		RayTraceResult trace = world.clip(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
-		RayTraceResult traceEntity = traceEntities(player, base, target, world);
-		RayTraceResult toUse = trace == null ? traceEntity : trace;
+	public static ItemStack rightClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
+		Vec3 base = new Vec3(player.getX(), player.getY(), player.getZ());
+		Vec3 look = player.getLookAngle();
+		Vec3 target = base.add(look.x * 5, look.y * 5, look.z * 5);
+		HitResult trace = world.clip(new ClipContext(base, target, Block.OUTLINE, Fluid.NONE, player));
+		HitResult traceEntity = traceEntities(player, base, target, world);
+		HitResult toUse = trace == null ? traceEntity : trace;
 
 		if (trace != null && traceEntity != null) {
 			double d1 = trace.getLocation().distanceTo(base);
 			double d2 = traceEntity.getLocation().distanceTo(base);
-			toUse = traceEntity.getType() == RayTraceResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
+			toUse = traceEntity.getType() == HitResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
 		}
 
 		if (toUse == null) return player.getMainHandItem();
 
 		ItemStack itemstack = player.getMainHandItem();
-		if (toUse.getType() == RayTraceResult.Type.ENTITY) {
-			if (processUseEntity(player, world, ((EntityRayTraceResult) toUse).getEntity(), toUse, CUseEntityPacket.Action.INTERACT_AT)) return player.getMainHandItem();
-			else if (processUseEntity(player, world, ((EntityRayTraceResult) toUse).getEntity(), null, CUseEntityPacket.Action.INTERACT)) return player.getMainHandItem();
-		} else if (toUse.getType() == RayTraceResult.Type.BLOCK) {
-			BlockPos blockpos = ((BlockRayTraceResult) toUse).getBlockPos();
+		if (toUse.getType() == HitResult.Type.ENTITY) {
+			if (processUseEntity(player, world, ((EntityHitResult) toUse).getEntity(), toUse, InteractionType.INTERACT_AT)) return player.getMainHandItem();
+			else if (processUseEntity(player, world, ((EntityHitResult) toUse).getEntity(), null, InteractionType.INTERACT)) return player.getMainHandItem();
+		} else if (toUse.getType() == HitResult.Type.BLOCK) {
+			BlockPos blockpos = ((BlockHitResult) toUse).getBlockPos();
 			BlockState state = world.getBlockState(blockpos);
 			if (state != sourceState && state.getMaterial() != Material.AIR) {
-				ActionResultType type = player.gameMode.useItemOn(player, world, itemstack, Hand.MAIN_HAND, (BlockRayTraceResult) toUse);
-				if (type == ActionResultType.SUCCESS) return player.getMainHandItem();
+				InteractionResult type = player.gameMode.useItemOn(player, world, itemstack, InteractionHand.MAIN_HAND, (BlockHitResult) toUse);
+				if (type == InteractionResult.SUCCESS) return player.getMainHandItem();
 			}
 		}
 
-		if (toUse == null || toUse.getType() == RayTraceResult.Type.MISS) {
+		if (toUse == null || toUse.getType() == HitResult.Type.MISS) {
 			for (int i = 1; i <= 5; i++) {
 				BlockState state = world.getBlockState(pos.relative(side, i));
 				if (state != sourceState && state.getMaterial() != Material.AIR) {
-					player.gameMode.useItemOn(player, world, itemstack, Hand.MAIN_HAND, (BlockRayTraceResult) toUse);
+					player.gameMode.useItemOn(player, world, itemstack, InteractionHand.MAIN_HAND, (BlockHitResult) toUse);
 					return player.getMainHandItem();
 				}
 			}
 		}
 
-		if (itemstack.isEmpty() && (toUse == null || toUse.getType() == RayTraceResult.Type.MISS)) ForgeHooks.onEmptyClick(player, Hand.MAIN_HAND);
-		if (!itemstack.isEmpty()) player.gameMode.useItem(player, world, itemstack, Hand.MAIN_HAND);
+		if (itemstack.isEmpty() && (toUse == null || toUse.getType() == HitResult.Type.MISS)) ForgeHooks.onEmptyClick(player, InteractionHand.MAIN_HAND);
+		if (!itemstack.isEmpty()) player.gameMode.useItem(player, world, itemstack, InteractionHand.MAIN_HAND);
 		return player.getMainHandItem();
 	}
 
@@ -189,38 +193,38 @@ public class FakePlayerUtil {
 	 * @param sourceState The state of the calling tile entity, so we don't click ourselves.
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
-	public static ItemStack leftClickInDirection(UsefulFakePlayer player, World world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vector3d base = new Vector3d(player.getX(), player.getY(), player.getZ());
-		Vector3d look = player.getLookAngle();
-		Vector3d target = base.add(look.x * 5, look.y * 5, look.z * 5);
-		RayTraceResult trace = world.clip(new RayTraceContext(base, target, BlockMode.OUTLINE, FluidMode.NONE, player));
-		RayTraceResult traceEntity = traceEntities(player, base, target, world);
-		RayTraceResult toUse = trace == null ? traceEntity : trace;
+	public static ItemStack leftClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
+		Vec3 base = new Vec3(player.getX(), player.getY(), player.getZ());
+		Vec3 look = player.getLookAngle();
+		Vec3 target = base.add(look.x * 5, look.y * 5, look.z * 5);
+		HitResult trace = world.clip(new ClipContext(base, target, Block.OUTLINE, Fluid.NONE, player));
+		HitResult traceEntity = traceEntities(player, base, target, world);
+		HitResult toUse = trace == null ? traceEntity : trace;
 
 		if (trace != null && traceEntity != null) {
 			double d1 = trace.getLocation().distanceTo(base);
 			double d2 = traceEntity.getLocation().distanceTo(base);
-			toUse = traceEntity.getType() == RayTraceResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
+			toUse = traceEntity.getType() == HitResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
 		}
 
 		if (toUse == null) return player.getMainHandItem();
 
-		if (toUse.getType() == RayTraceResult.Type.ENTITY) {
-			if (processUseEntity(player, world, ((EntityRayTraceResult) toUse).getEntity(), null, CUseEntityPacket.Action.ATTACK)) return player.getMainHandItem();
-		} else if (toUse.getType() == RayTraceResult.Type.BLOCK) {
-			BlockPos blockpos = ((BlockRayTraceResult) toUse).getBlockPos();
+		if (toUse.getType() == HitResult.Type.ENTITY) {
+			if (processUseEntity(player, world, ((EntityHitResult) toUse).getEntity(), null, InteractionType.ATTACK)) return player.getMainHandItem();
+		} else if (toUse.getType() == HitResult.Type.BLOCK) {
+			BlockPos blockpos = ((BlockHitResult) toUse).getBlockPos();
 			BlockState state = world.getBlockState(blockpos);
 			if (state != sourceState && state.getMaterial() != Material.AIR) {
-				player.gameMode.handleBlockBreakAction(blockpos, Action.START_DESTROY_BLOCK, ((BlockRayTraceResult) toUse).getDirection(), player.server.getMaxBuildHeight());
+				player.gameMode.handleBlockBreakAction(blockpos, Action.START_DESTROY_BLOCK, ((BlockHitResult) toUse).getDirection(), player.level.getMaxBuildHeight());
 				return player.getMainHandItem();
 			}
 		}
 
-		if (toUse == null || toUse.getType() == RayTraceResult.Type.MISS) {
+		if (toUse == null || toUse.getType() == HitResult.Type.MISS) {
 			for (int i = 1; i <= 5; i++) {
 				BlockState state = world.getBlockState(pos.relative(side, i));
 				if (state != sourceState && state.getMaterial() != Material.AIR) {
-					player.gameMode.handleBlockBreakAction(pos.relative(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.server.getMaxBuildHeight());
+					player.gameMode.handleBlockBreakAction(pos.relative(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.level.getMaxBuildHeight());
 					return player.getMainHandItem();
 				}
 			}
@@ -235,19 +239,19 @@ public class FakePlayerUtil {
 	 * @param world The world of the calling tile entity.
 	 * @return A ray trace result that will likely be of type entity, but may be type block, or null.
 	 */
-	public static RayTraceResult traceEntities(UsefulFakePlayer player, Vector3d base, Vector3d target, World world) {
+	public static HitResult traceEntities(UsefulFakePlayer player, Vec3 base, Vec3 target, Level world) {
 		Entity pointedEntity = null;
-		RayTraceResult result = null;
-		Vector3d vec3d3 = null;
-		AxisAlignedBB search = new AxisAlignedBB(base.x, base.y, base.z, target.x, target.y, target.z).inflate(.5, .5, .5);
-		List<Entity> list = world.getEntities(player, search, entity -> EntityPredicates.NO_SPECTATORS.test(entity) && entity != null && entity.isPickable());
+		HitResult result = null;
+		Vec3 vec3d3 = null;
+		AABB search = new AABB(base.x, base.y, base.z, target.x, target.y, target.z).inflate(.5, .5, .5);
+		List<Entity> list = world.getEntities(player, search, entity -> EntitySelector.NO_SPECTATORS.test(entity) && entity != null && entity.isPickable());
 		double d2 = 5;
 
 		for (int j = 0; j < list.size(); ++j) {
 			Entity entity1 = list.get(j);
 
-			AxisAlignedBB aabb = entity1.getBoundingBox().inflate(entity1.getPickRadius());
-			Optional<Vector3d> optVec = aabb.clip(base, target);
+			AABB aabb = entity1.getBoundingBox().inflate(entity1.getPickRadius());
+			Optional<Vec3> optVec = aabb.clip(base, target);
 
 			if (aabb.contains(base)) {
 				if (d2 >= 0.0D) {
@@ -275,11 +279,11 @@ public class FakePlayerUtil {
 
 		if (pointedEntity != null && base.distanceTo(vec3d3) > 5) {
 			pointedEntity = null;
-			result = BlockRayTraceResult.miss(vec3d3, null, new BlockPos(vec3d3));
+			result = BlockHitResult.miss(vec3d3, null, new BlockPos(vec3d3));
 		}
 
 		if (pointedEntity != null) {
-			result = new EntityRayTraceResult(pointedEntity, vec3d3);
+			result = new EntityHitResult(pointedEntity, vec3d3);
 		}
 
 		return result;
@@ -294,21 +298,17 @@ public class FakePlayerUtil {
 	 * @param action The type of interaction to perform.
 	 * @return If the entity was used.
 	 */
-	public static boolean processUseEntity(UsefulFakePlayer player, World world, Entity entity, @Nullable RayTraceResult result, CUseEntityPacket.Action action) {
+	public static boolean processUseEntity(UsefulFakePlayer player, Level world, Entity entity, @Nullable HitResult result, InteractionType action) {
 		if (entity != null) {
-			boolean flag = player.canSee(entity);
-			double d0 = 36.0D;
 
-			if (!flag) d0 = 9.0D;
-
-			if (player.distanceToSqr(entity) < d0) {
-				if (action == CUseEntityPacket.Action.INTERACT) {
-					return player.interactOn(entity, Hand.MAIN_HAND) == ActionResultType.SUCCESS;
-				} else if (action == CUseEntityPacket.Action.INTERACT_AT) {
-					if (ForgeHooks.onInteractEntityAt(player, entity, result.getLocation(), Hand.MAIN_HAND) != null) return false;
-					return entity.interactAt(player, result.getLocation(), Hand.MAIN_HAND) == ActionResultType.SUCCESS;
-				} else if (action == CUseEntityPacket.Action.ATTACK) {
-					if (entity instanceof ItemEntity || entity instanceof ExperienceOrbEntity || entity instanceof ArrowEntity || entity == player) return false;
+			if (player.distanceToSqr(entity) < 36) {
+				if (action == InteractionType.INTERACT) {
+					return player.interactOn(entity, InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
+				} else if (action == InteractionType.INTERACT_AT) {
+					if (ForgeHooks.onInteractEntityAt(player, entity, result.getLocation(), InteractionHand.MAIN_HAND) != null) return false;
+					return entity.interactAt(player, result.getLocation(), InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
+				} else if (action == InteractionType.ATTACK) {
+					if (entity instanceof ItemEntity || entity instanceof ExperienceOrb || entity instanceof Arrow || entity == player) return false;
 					player.attack(entity);
 					return true;
 				}
@@ -320,11 +320,17 @@ public class FakePlayerUtil {
 	/**
 	 * A copy-paste of the SideOnly {@link Entity#rayTrace(double, float)}
 	 */
-	public static RayTraceResult rayTrace(UsefulFakePlayer player, World world, double reachDist, float partialTicks) {
-		Vector3d vec3d = player.getEyePosition(partialTicks);
-		Vector3d vec3d1 = player.getViewVector(partialTicks);
-		Vector3d vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
-		return world.clip(new RayTraceContext(vec3d, vec3d2, BlockMode.OUTLINE, FluidMode.NONE, player));
+	public static HitResult rayTrace(UsefulFakePlayer player, Level world, double reachDist, float partialTicks) {
+		Vec3 vec3d = player.getEyePosition(partialTicks);
+		Vec3 vec3d1 = player.getViewVector(partialTicks);
+		Vec3 vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
+		return world.clip(new ClipContext(vec3d, vec3d2, Block.OUTLINE, Fluid.NONE, player));
+	}
+
+	public static enum InteractionType {
+		INTERACT,
+		INTERACT_AT,
+		ATTACK;
 	}
 
 }

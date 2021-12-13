@@ -1,66 +1,58 @@
 package shadows.click.block.gui;
 
-import net.minecraft.client.gui.widget.AbstractSlider;
-import net.minecraft.client.renderer.texture.ITickable;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 import shadows.click.ClickMachineConfig;
-import shadows.placebo.Placebo;
-import shadows.placebo.net.MessageButtonClick;
 
-public class SpeedSlider extends AbstractSlider implements ITickable {
+/// NOTE TO URSELF - update the slider on first load of world - either needs packet notif on change or slider needs to update when data is received on client!:tm:
+public class SpeedSlider extends AbstractSliderButton {
 
 	protected static final int minValue = 0, maxValue = 8;
 	protected static final float stepSize = 1 / 9F;
 
-	protected final GuiAutoClick gui;
+	protected final AutoClickScreen gui;
 
-	public SpeedSlider(GuiAutoClick gui, int x, int y, int width, int height) {
-		super(x, y, width, height, StringTextComponent.EMPTY, -0.001);
+	public SpeedSlider(AutoClickScreen gui, int x, int y, int width, int height) {
+		super(x, y, width, height, TextComponent.EMPTY, normalizeValue(gui.getMenu().getSpeedIdx()));
 		this.gui = gui;
+		this.updateMessage();
 	}
 
-	@Override
-	public void tick() {
-		if (value == -0.001) {
-			int tileVal = this.gui.getMenu().data.get(1);
-			value = normalizeValue(tileVal);
-			updateMessage();
-		}
-	}
-
-	/**
-	 * MojMap: updateMessage
-	 */
 	@Override
 	protected void updateMessage() {
 		int spd = denormalizeValue(value);
 		int ticksPerClick = ClickMachineConfig.speeds[spd];
 		double cps = (1D / ticksPerClick) * 20;
-		this.setMessage(new TranslationTextComponent("gui.clickmachine.speed", String.format("%.2f", cps)));
+		this.setMessage(new TranslatableComponent("gui.clickmachine.speed", String.format("%.2f", cps)));
 	}
 
-	/**
-	 * MojMap: applyValue
-	 */
 	@Override
 	protected void applyValue() {
-		Placebo.CHANNEL.sendToServer(new MessageButtonClick(4 + (int) denormalizeValue(this.value)));
+		Minecraft.getInstance().gameMode.handleInventoryButtonClick(gui.getMenu().containerId, 4 + denormalizeValue(this.value));
+	}
+
+	public void setValue(int value) {
+		if (!this.gui.isDragging()) {
+			this.value = normalizeValue(value);
+			this.updateMessage();
+		}
 	}
 
 	/**
 	 * Converts an int value within the range into a slider percentage.
 	 */
 	public static double normalizeValue(double value) {
-		return MathHelper.clamp((snapToStepClamp(value) - minValue) / (maxValue - minValue), 0.0D, 1.0D);
+		return Mth.clamp((snapToStepClamp(value) - minValue) / (maxValue - minValue), 0.0D, 1.0D);
 	}
 
 	/**
 	 * Converts a slider percentage to its bounded int value.
 	 */
 	public static int denormalizeValue(double value) {
-		return (int) snapToStepClamp(MathHelper.lerp(MathHelper.clamp(value, 0.0D, 1.0D), minValue, maxValue));
+		return (int) snapToStepClamp(Mth.lerp(Mth.clamp(value, 0.0D, 1.0D), minValue, maxValue));
 	}
 
 	private static double snapToStepClamp(double valueIn) {
@@ -68,7 +60,7 @@ public class SpeedSlider extends AbstractSlider implements ITickable {
 			valueIn = (double) (stepSize * (float) Math.round(valueIn / (double) stepSize));
 		}
 
-		return MathHelper.clamp(valueIn, minValue, maxValue);
+		return Mth.clamp(valueIn, minValue, maxValue);
 	}
 
 }
