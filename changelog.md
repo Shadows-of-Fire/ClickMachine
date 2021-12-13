@@ -1,3 +1,6 @@
+## 5.0.0
+* Updated to 1.17.1
+
 ## 4.5.0
 * Added a dummy rainbow power bar when power is disabled, to hopefully make people realize power is disabled.
 * Removed the Energy Capability when power is disabled, so nothing tries to display it.
