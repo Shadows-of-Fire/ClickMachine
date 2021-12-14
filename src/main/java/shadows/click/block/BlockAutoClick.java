@@ -71,7 +71,7 @@ public class BlockAutoClick extends Block implements TickingEntityBlock {
 		Direction face = placer.getDirection().getOpposite();
 		if (placer.getXRot() > 50) face = Direction.UP;
 		else if (placer.getXRot() < -50) face = Direction.DOWN;
-		return defaultBlockState().setValue(FACING, face);
+		return this.defaultBlockState().setValue(FACING, face);
 	}
 
 	@Override

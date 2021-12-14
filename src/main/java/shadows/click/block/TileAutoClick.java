@@ -52,7 +52,7 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 
 	public TileAutoClick(BlockPos pos, BlockState state) {
 		super(ClickMachine.TILE, pos, state);
-		held = new ItemStackHandler(1) {
+		this.held = new ItemStackHandler(1) {
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
 				return !ClickMachineConfig.blacklistedItems.contains(stack.getItem());
@@ -64,86 +64,87 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 		this.data.addData(() -> this.rightClick, v -> this.rightClick = v);
 	}
 
+	@Override
 	public void serverTick(Level level, BlockPos pos, BlockState state) {
-		if (player == null) {
-			player = new WeakReference<>(FakePlayerUtil.getPlayer(level, profile != null ? profile : DEFAULT_CLICKER));
+		if (this.player == null) {
+			this.player = new WeakReference<>(FakePlayerUtil.getPlayer(level, this.profile != null ? this.profile : DEFAULT_CLICKER));
 		}
-		if (!level.hasNeighborSignal(worldPosition)) {
-			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[getSpeedIndex()] : 0;
-			if (power.extractEnergy(use, true) == use) {
-				power.extractEnergy(use, false);
-				if (player != null && counter++ % getSpeed() == 0) {
-					Direction facing = level.getBlockState(worldPosition).getValue(BlockAutoClick.FACING);
-					FakePlayerUtil.setupFakePlayerForUse(getPlayer(), this.worldPosition, facing, held.getStackInSlot(0).copy(), sneak);
-					ItemStack result = held.getStackInSlot(0);
-					if (rightClick) result = FakePlayerUtil.rightClickInDirection(getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(worldPosition));
-					else result = FakePlayerUtil.leftClickInDirection(getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(worldPosition));
-					FakePlayerUtil.cleanupFakePlayerFromUse(getPlayer(), result, held.getStackInSlot(0), this);
-					setChanged();
+		if (!level.hasNeighborSignal(this.worldPosition)) {
+			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[this.getSpeedIndex()] : 0;
+			if (this.power.extractEnergy(use, true) == use) {
+				this.power.extractEnergy(use, false);
+				if (this.player != null && this.counter++ % this.getSpeed() == 0) {
+					Direction facing = level.getBlockState(this.worldPosition).getValue(BlockAutoClick.FACING);
+					FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
+					ItemStack result = this.held.getStackInSlot(0);
+					if (this.rightClick) result = FakePlayerUtil.rightClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
+					else result = FakePlayerUtil.leftClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
+					FakePlayerUtil.cleanupFakePlayerFromUse(this.getPlayer(), result, this.held.getStackInSlot(0), this);
+					this.setChanged();
 				}
 			}
 			if (!state.getValue(BlockAutoClick.ACTIVE)) {
-				level.setBlock(worldPosition, state.setValue(BlockAutoClick.ACTIVE, true), 2);
+				level.setBlock(this.worldPosition, state.setValue(BlockAutoClick.ACTIVE, true), 2);
 			}
 		} else {
 			if (state.getValue(BlockAutoClick.ACTIVE)) {
-				level.setBlock(worldPosition, state.setValue(BlockAutoClick.ACTIVE, false), 2);
+				level.setBlock(this.worldPosition, state.setValue(BlockAutoClick.ACTIVE, false), 2);
 			}
 		}
 	}
 
 	public void setPlayer(Player player) {
-		profile = player.getGameProfile();
-		setChanged();
+		this.profile = player.getGameProfile();
+		this.setChanged();
 	}
 
-	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> held);
-	LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> power);
+	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> this.held);
+	LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> this.power);
 
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return ihopt.cast();
-		if (cap == CapabilityEnergy.ENERGY && ClickMachineConfig.usesRF) return ieopt.cast();
+		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return this.ihopt.cast();
+		if (cap == CapabilityEnergy.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
 		return super.getCapability(cap, side);
 	}
 
 	UsefulFakePlayer getPlayer() {
-		return player.get();
+		return this.player.get();
 	}
 
 	public IItemHandler getHandler() {
-		return held;
+		return this.held;
 	}
 
 	public int getSpeed() {
-		return ClickMachineConfig.speeds[getSpeedIndex()];
+		return ClickMachineConfig.speeds[this.getSpeedIndex()];
 	}
 
 	public int getSpeedIndex() {
-		return speedIdx;
+		return this.speedIdx;
 	}
 
 	public void setSpeedIndex(int speedIdx) {
 		this.speedIdx = speedIdx;
-		setChanged();
+		this.setChanged();
 	}
 
 	public boolean isSneaking() {
-		return sneak;
+		return this.sneak;
 	}
 
 	public void setSneaking(boolean sneak) {
 		this.sneak = sneak;
-		setChanged();
+		this.setChanged();
 	}
 
 	public boolean isRightClicking() {
-		return rightClick;
+		return this.rightClick;
 	}
 
 	public void setRightClicking(boolean rightClick) {
 		this.rightClick = rightClick;
-		setChanged();
+		this.setChanged();
 	}
 
 	static final String tagUUID = "uuid";
@@ -157,69 +158,69 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 
 	@Override
 	public CompoundTag save(CompoundTag tag) {
-		if (profile != null) {
-			tag.putUUID(tagUUID, profile.getId());
-			tag.putString(tagName, profile.getName());
+		if (this.profile != null) {
+			tag.putUUID(tagUUID, this.profile.getId());
+			tag.putString(tagName, this.profile.getName());
 		}
-		tag.put(tagHandler, held.serializeNBT());
-		tag.putInt(tagCounter, counter % getSpeed());
-		writeSyncData(tag);
+		tag.put(tagHandler, this.held.serializeNBT());
+		tag.putInt(tagCounter, this.counter % this.getSpeed());
+		this.writeSyncData(tag);
 		return super.save(tag);
 	}
 
 	void writeSyncData(CompoundTag tag) {
-		tag.putInt(tagSpeed, getSpeedIndex());
-		tag.putBoolean(tagSneak, sneak);
-		tag.putBoolean(tagRightClick, rightClick);
-		tag.putInt(tagEnergy, power.getEnergyStored());
+		tag.putInt(tagSpeed, this.getSpeedIndex());
+		tag.putBoolean(tagSneak, this.sneak);
+		tag.putBoolean(tagRightClick, this.rightClick);
+		tag.putInt(tagEnergy, this.power.getEnergyStored());
 	}
 
 	void readSyncData(CompoundTag tag) {
-		setSpeedIndex(tag.getInt(tagSpeed));
-		sneak = tag.getBoolean(tagSneak);
-		rightClick = tag.getBoolean(tagRightClick);
-		setPower(tag.getInt(tagEnergy));
+		this.setSpeedIndex(tag.getInt(tagSpeed));
+		this.sneak = tag.getBoolean(tagSneak);
+		this.rightClick = tag.getBoolean(tagRightClick);
+		this.setPower(tag.getInt(tagEnergy));
 	}
 
 	@Override
 	public void load(CompoundTag tag) {
 		super.load(tag);
-		if (tag.contains(tagUUID) && tag.contains(tagName)) profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
-		if (tag.contains(tagHandler)) held.deserializeNBT(tag.getCompound(tagHandler));
-		counter = tag.getInt(tagCounter);
-		readSyncData(tag);
+		if (tag.contains(tagUUID) && tag.contains(tagName)) this.profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
+		if (tag.contains(tagHandler)) this.held.deserializeNBT(tag.getCompound(tagHandler));
+		this.counter = tag.getInt(tagCounter);
+		this.readSyncData(tag);
 	}
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		CompoundTag tag = new CompoundTag();
-		writeSyncData(tag);
-		return new ClientboundBlockEntityDataPacket(worldPosition, 05150, tag);
+		this.writeSyncData(tag);
+		return new ClientboundBlockEntityDataPacket(this.worldPosition, 05150, tag);
 	}
 
 	@Override
 	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-		readSyncData(pkt.getTag());
+		this.readSyncData(pkt.getTag());
 	}
 
 	public int getPower() {
-		return power.getEnergyStored();
+		return this.power.getEnergyStored();
 	}
 
 	public void setPower(int energy) {
-		power.extractEnergy(power.getMaxEnergyStored(), false);
-		power.receiveEnergy(energy, false);
-		setChanged();
+		this.power.extractEnergy(this.power.getMaxEnergyStored(), false);
+		this.power.receiveEnergy(energy, false);
+		this.setChanged();
 	}
 
 	@Override
 	public void accept(ItemStack s) {
-		held.setStackInSlot(0, s);
+		this.held.setStackInSlot(0, s);
 	}
 
 	@Override
 	public ContainerData getData() {
-		return data;
+		return this.data;
 	}
 
 }

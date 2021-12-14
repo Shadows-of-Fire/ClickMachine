@@ -13,7 +13,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -24,8 +23,9 @@ import net.minecraftforge.fmlclient.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.placebo.container.IDataUpdateListener;
+import shadows.placebo.screen.PlaceboContainerScreen;
 
-public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer> implements IDataUpdateListener {
+public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> implements IDataUpdateListener {
 
 	public static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ClickMachine.MODID, "textures/gui/auto_click.png");
 	protected Player player = Minecraft.getInstance().player;
@@ -63,7 +63,7 @@ public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer>
 	@Override
 	protected void renderLabels(PoseStack stack, int mouseX, int mouseY) {
 		this.font.draw(stack, this.getNarrationMessage(), 8, 6, 4210752);
-		this.font.draw(stack, player.getInventory().getDisplayName().getString(), 8, this.imageHeight - 96 + 2, 4210752);
+		this.font.draw(stack, this.player.getInventory().getDisplayName().getString(), 8, this.imageHeight - 96 + 2, 4210752);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -77,14 +77,14 @@ public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer>
 		this.blit(stack, i, j, 0, 0, this.imageWidth, this.imageHeight);
 		int x = i + 150;
 		int y = j + 26;
-		this.blit(stack, x, y, imageWidth + 21, 0, 21, 64);
+		this.blit(stack, x, y, this.imageWidth + 21, 0, 21, 64);
 		if (ClickMachineConfig.usesRF) {
 			int maxP = ClickMachineConfig.maxPowerStorage;
 			double p = this.menu.getEnergy();
 			double ratio = p / maxP;
-			this.blit(stack, x, y, imageWidth, 0, 21, 64 - (int) (ratio * 64));
+			this.blit(stack, x, y, this.imageWidth, 0, 21, 64 - (int) (ratio * 64));
 		} else {
-			colorBlit(stack, x + 1, y + 1, imageWidth + 43, 1, 19, 62, colors[(int) ((partialTicks + Minecraft.getInstance().player.tickCount / 0.5F) % colors.length)]);
+			colorBlit(stack, x + 1, y + 1, this.imageWidth + 43, 1, 19, 62, colors[(int) ((partialTicks + Minecraft.getInstance().player.tickCount / 0.5F) % colors.length)]);
 		}
 	}
 
@@ -92,16 +92,16 @@ public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer>
 	@SuppressWarnings("removal")
 	protected void renderTooltip(PoseStack stack, int x, int y) {
 		super.renderTooltip(stack, x, y);
-		if (isHovering(150, 26, 21, 64, x, y)) {
+		if (this.isHovering(150, 26, 21, 64, x, y)) {
 			if (ClickMachineConfig.usesRF) {
 				List<Component> comps = new ArrayList<>(2);
-				comps.add(new TranslatableComponent("gui.clickmachine.power", menu.getEnergy(), ClickMachineConfig.maxPowerStorage));
-				comps.add(new TranslatableComponent("gui.clickmachine.power.usage", ClickMachineConfig.powerPerSpeed[menu.getSpeedIdx()]));
-				GuiUtils.drawHoveringText(stack, comps, x, y, width, height, 0xFFFFFF, font);
+				comps.add(new TranslatableComponent("gui.clickmachine.power", this.menu.getEnergy(), ClickMachineConfig.maxPowerStorage));
+				comps.add(new TranslatableComponent("gui.clickmachine.power.usage", ClickMachineConfig.powerPerSpeed[this.menu.getSpeedIdx()]));
+				GuiUtils.drawHoveringText(stack, comps, x, y, this.width, this.height, 0xFFFFFF, this.font);
 			} else {
 				List<Component> comps = new ArrayList<>(1);
 				comps.add(new TranslatableComponent("gui.clickmachine.rainbow_magic"));
-				GuiUtils.drawHoveringText(stack, comps, x, y, width, height, 0xFFFFFF, font);
+				GuiUtils.drawHoveringText(stack, comps, x, y, this.width, this.height, 0xFFFFFF, this.font);
 			}
 		}
 	}
@@ -113,7 +113,7 @@ public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer>
 	}
 
 	private static void innerBlit(PoseStack pMatrixStack, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, int pUWidth, int pVHeight, float pUOffset, float pVOffset, int pTextureWidth, int pTextureHeight, int color) {
-		innerBlit(pMatrixStack.last().pose(), pX1, pX2, pY1, pY2, pBlitOffset, (pUOffset + 0.0F) / (float) pTextureWidth, (pUOffset + (float) pUWidth) / (float) pTextureWidth, (pVOffset + 0.0F) / (float) pTextureHeight, (pVOffset + (float) pVHeight) / (float) pTextureHeight, color);
+		innerBlit(pMatrixStack.last().pose(), pX1, pX2, pY1, pY2, pBlitOffset, (pUOffset + 0.0F) / pTextureWidth, (pUOffset + pUWidth) / pTextureWidth, (pVOffset + 0.0F) / pTextureHeight, (pVOffset + pVHeight) / pTextureHeight, color);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -121,10 +121,10 @@ public class AutoClickScreen extends AbstractContainerScreen<AutoClickContainer>
 		RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
 		BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
 		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-		bufferbuilder.vertex(pMatrix, (float) pX1, (float) pY2, (float) pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMinU, pMaxV).endVertex();
-		bufferbuilder.vertex(pMatrix, (float) pX2, (float) pY2, (float) pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMaxU, pMaxV).endVertex();
-		bufferbuilder.vertex(pMatrix, (float) pX2, (float) pY1, (float) pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMaxU, pMinV).endVertex();
-		bufferbuilder.vertex(pMatrix, (float) pX1, (float) pY1, (float) pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMinU, pMinV).endVertex();
+		bufferbuilder.vertex(pMatrix, pX1, pY2, pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMinU, pMaxV).endVertex();
+		bufferbuilder.vertex(pMatrix, pX2, pY2, pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMaxU, pMaxV).endVertex();
+		bufferbuilder.vertex(pMatrix, pX2, pY1, pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMaxU, pMinV).endVertex();
+		bufferbuilder.vertex(pMatrix, pX1, pY1, pBlitOffset).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, 255).uv(pMinU, pMinV).endVertex();
 		bufferbuilder.end();
 		BufferUploader.end(bufferbuilder);
 	}

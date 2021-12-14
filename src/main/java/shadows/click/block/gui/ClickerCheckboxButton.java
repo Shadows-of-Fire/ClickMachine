@@ -25,17 +25,17 @@ public class ClickerCheckboxButton extends Checkbox {
 
 	@Override
 	public void onPress() {
-		Minecraft.getInstance().gameMode.handleInventoryButtonClick(gui.getMenu().containerId, this.index - 1);
+		Minecraft.getInstance().gameMode.handleInventoryButtonClick(this.gui.getMenu().containerId, this.index - 1);
 	}
 
 	@Override
 	public boolean isFocused() {
-		return isHovered();
+		return this.isHovered();
 	}
 
 	@Override
 	public boolean selected() {
-		return gui.getMenu().getData().get(index) != 0;
+		return this.gui.getMenu().getData().get(this.index) != 0;
 	}
 
 	@Override

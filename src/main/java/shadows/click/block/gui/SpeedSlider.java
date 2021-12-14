@@ -23,15 +23,15 @@ public class SpeedSlider extends AbstractSliderButton {
 
 	@Override
 	protected void updateMessage() {
-		int spd = denormalizeValue(value);
+		int spd = denormalizeValue(this.value);
 		int ticksPerClick = ClickMachineConfig.speeds[spd];
-		double cps = (1D / ticksPerClick) * 20;
+		double cps = 1D / ticksPerClick * 20;
 		this.setMessage(new TranslatableComponent("gui.clickmachine.speed", String.format("%.2f", cps)));
 	}
 
 	@Override
 	protected void applyValue() {
-		Minecraft.getInstance().gameMode.handleInventoryButtonClick(gui.getMenu().containerId, 4 + denormalizeValue(this.value));
+		Minecraft.getInstance().gameMode.handleInventoryButtonClick(this.gui.getMenu().containerId, 4 + denormalizeValue(this.value));
 	}
 
 	public void setValue(int value) {
@@ -57,7 +57,7 @@ public class SpeedSlider extends AbstractSliderButton {
 
 	private static double snapToStepClamp(double valueIn) {
 		if (stepSize > 0.0F) {
-			valueIn = (double) (stepSize * (float) Math.round(valueIn / (double) stepSize));
+			valueIn = stepSize * Math.round(valueIn / stepSize);
 		}
 
 		return Mth.clamp(valueIn, minValue, maxValue);
