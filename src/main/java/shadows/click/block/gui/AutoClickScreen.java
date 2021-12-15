@@ -19,7 +19,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fmlclient.gui.GuiUtils;
 import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.placebo.container.IDataUpdateListener;
@@ -97,11 +96,11 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
 				List<Component> comps = new ArrayList<>(2);
 				comps.add(new TranslatableComponent("gui.clickmachine.power", this.menu.getEnergy(), ClickMachineConfig.maxPowerStorage));
 				comps.add(new TranslatableComponent("gui.clickmachine.power.usage", ClickMachineConfig.powerPerSpeed[this.menu.getSpeedIdx()]));
-				GuiUtils.drawHoveringText(stack, comps, x, y, this.width, this.height, 0xFFFFFF, this.font);
+				this.renderComponentTooltip(stack, comps, x, y, this.font);
 			} else {
 				List<Component> comps = new ArrayList<>(1);
 				comps.add(new TranslatableComponent("gui.clickmachine.rainbow_magic"));
-				GuiUtils.drawHoveringText(stack, comps, x, y, this.width, this.height, 0xFFFFFF, this.font);
+				this.renderComponentTooltip(stack, comps, x, y, this.font);
 			}
 		}
 	}

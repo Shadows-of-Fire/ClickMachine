@@ -30,7 +30,7 @@ public class ClickerCheckboxButton extends Checkbox {
 
 	@Override
 	public boolean isFocused() {
-		return this.isHovered();
+		return this.isHoveredOrFocused();
 	}
 
 	@Override

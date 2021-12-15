@@ -168,11 +168,12 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 		return super.save(tag);
 	}
 
-	void writeSyncData(CompoundTag tag) {
+	CompoundTag writeSyncData(CompoundTag tag) {
 		tag.putInt(tagSpeed, this.getSpeedIndex());
 		tag.putBoolean(tagSneak, this.sneak);
 		tag.putBoolean(tagRightClick, this.rightClick);
 		tag.putInt(tagEnergy, this.power.getEnergyStored());
+		return tag;
 	}
 
 	void readSyncData(CompoundTag tag) {
@@ -193,9 +194,7 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		CompoundTag tag = new CompoundTag();
-		this.writeSyncData(tag);
-		return new ClientboundBlockEntityDataPacket(this.worldPosition, 05150, tag);
+		return ClientboundBlockEntityDataPacket.create(this, b -> ((TileAutoClick) b).writeSyncData(new CompoundTag()));
 	}
 
 	@Override
