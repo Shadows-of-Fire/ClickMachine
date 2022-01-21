@@ -157,7 +157,8 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 	static final String tagEnergy = "fe";
 
 	@Override
-	public CompoundTag save(CompoundTag tag) {
+	protected void saveAdditional(CompoundTag tag) {
+		super.saveAdditional(tag);
 		if (this.profile != null) {
 			tag.putUUID(tagUUID, this.profile.getId());
 			tag.putString(tagName, this.profile.getName());
@@ -165,7 +166,6 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 		tag.put(tagHandler, this.held.serializeNBT());
 		tag.putInt(tagCounter, this.counter % this.getSpeed());
 		this.writeSyncData(tag);
-		return super.save(tag);
 	}
 
 	CompoundTag writeSyncData(CompoundTag tag) {

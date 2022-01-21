@@ -1,3 +1,7 @@
+## 6.0.1
+* Fixed TE data not saving.
+* Hav3funDJ: Added Italian Translation.
+
 ## 6.0.0
 * Updated to 1.18.1
 
