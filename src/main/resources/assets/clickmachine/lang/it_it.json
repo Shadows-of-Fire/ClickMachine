@@ -1,0 +1,10 @@
+{
+    "gui.clickmachine.autoclick": "Macchina Auto-Cliccante",
+    "block.clickmachine.auto_clicker": "Macchina Auto-Cliccante",
+    "gui.clickmachine.speed": "%s click/s",
+    "gui.clickmachine.sneaking": "Abbassato",
+    "gui.clickmachine.right_click": "Click tasto destro",
+    "gui.clickmachine.power": "FE: %s/%s",
+	"gui.clickmachine.power.usage": "Uso di %s FE/t",
+	"gui.clickmachine.rainbow_magic": "Alimentato ad Energia Magica!"
+}
