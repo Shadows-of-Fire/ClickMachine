@@ -1,3 +1,7 @@
+## 6.0.2
+* Updated to Placebo 6.1.0
+* Fixed a dupe bug.
+
 ## 6.0.1
 * Fixed TE data not saving.
 * Hav3funDJ: Added Italian Translation.

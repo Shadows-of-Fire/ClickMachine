@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -33,7 +33,7 @@ import shadows.placebo.cap.ModifiableEnergyStorage;
 import shadows.placebo.container.EasyContainerData;
 import shadows.placebo.container.EasyContainerData.IDataAutoRegister;
 
-public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
+public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
 
 	public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
@@ -50,7 +50,7 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 
 	protected final EasyContainerData data = new EasyContainerData();
 
-	public TileAutoClick(BlockPos pos, BlockState state) {
+	public AutoClickerTile(BlockPos pos, BlockState state) {
 		super(ClickMachine.TILE, pos, state);
 		this.held = new ItemStackHandler(1) {
 			@Override
@@ -74,7 +74,7 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 			if (this.power.extractEnergy(use, true) == use) {
 				this.power.extractEnergy(use, false);
 				if (this.player != null && this.counter++ % this.getSpeed() == 0) {
-					Direction facing = level.getBlockState(this.worldPosition).getValue(BlockAutoClick.FACING);
+					Direction facing = level.getBlockState(this.worldPosition).getValue(AutoClickerBlock.FACING);
 					FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
 					ItemStack result = this.held.getStackInSlot(0);
 					if (this.rightClick) result = FakePlayerUtil.rightClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
@@ -83,12 +83,12 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 					this.setChanged();
 				}
 			}
-			if (!state.getValue(BlockAutoClick.ACTIVE)) {
-				level.setBlock(this.worldPosition, state.setValue(BlockAutoClick.ACTIVE, true), 2);
+			if (!state.getValue(AutoClickerBlock.ACTIVE)) {
+				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, true), 2);
 			}
 		} else {
-			if (state.getValue(BlockAutoClick.ACTIVE)) {
-				level.setBlock(this.worldPosition, state.setValue(BlockAutoClick.ACTIVE, false), 2);
+			if (state.getValue(AutoClickerBlock.ACTIVE)) {
+				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, false), 2);
 			}
 		}
 	}
@@ -194,7 +194,7 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, b -> ((TileAutoClick) b).writeSyncData(new CompoundTag()));
+		return ClientboundBlockEntityDataPacket.create(this, b -> ((AutoClickerTile) b).writeSyncData(new CompoundTag()));
 	}
 
 	@Override
@@ -218,8 +218,8 @@ public class TileAutoClick extends BlockEntity implements Consumer<ItemStack>, T
 	}
 
 	@Override
-	public ContainerData getData() {
-		return this.data;
+	public void registerSlots(Consumer<DataSlot> consumer) {
+		this.data.register(consumer);
 	}
 
 }

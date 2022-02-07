@@ -3,20 +3,19 @@ package shadows.click.block.gui;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraftforge.items.SlotItemHandler;
 import shadows.click.ClickMachine;
-import shadows.click.block.TileAutoClick;
+import shadows.click.block.AutoClickerTile;
 import shadows.placebo.container.BlockEntityContainer;
 
-public class AutoClickContainer extends BlockEntityContainer<TileAutoClick> {
+public class AutoClickContainer extends BlockEntityContainer<AutoClickerTile> {
 
 	public AutoClickContainer(int id, Inventory pInv, BlockPos pos) {
 		super(ClickMachine.CONTAINER, id, pInv, pos);
 		this.addSlot(new SlotItemHandler(this.tile.getHandler(), 0, 8, 50)); //Add clicker item slot
 		this.addPlayerSlots(pInv, 8, 114);
 		this.mover.registerRule((stack, slot) -> slot == 0, 1, this.slots.size());
-		this.mover.registerRule((stack, slot) -> slot > 0, 0, this.slots.size());
+		this.mover.registerRule((stack, slot) -> slot > 0, 0, 1);
 	}
 
 	@Override
@@ -34,13 +33,12 @@ public class AutoClickContainer extends BlockEntityContainer<TileAutoClick> {
 		return button <= 12;
 	}
 
-	public ContainerData getData() {
-		return this.tile.getData();
+	public boolean isSneaking() {
+		return this.tile.isSneaking();
 	}
 
-	@Override
-	public void setData(int pId, int pData) {
-		super.setData(pId, pData);
+	public boolean isRightClicking() {
+		return this.tile.isRightClicking();
 	}
 
 	public int getEnergy() {

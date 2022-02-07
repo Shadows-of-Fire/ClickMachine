@@ -26,8 +26,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
-import shadows.click.block.BlockAutoClick;
-import shadows.click.block.TileAutoClick;
+import shadows.click.block.AutoClickerBlock;
+import shadows.click.block.AutoClickerTile;
 import shadows.click.block.gui.AutoClickContainer;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 import shadows.placebo.block_entity.TickingBlockEntityType;
@@ -44,9 +44,9 @@ public class ClickMachine {
 	public static final Logger LOG = LogManager.getLogger(MODID);
 	public static final RecipeHelper HELPER = new RecipeHelper(MODID);
 
-	public static final BlockAutoClick AUTO_CLICKER = new BlockAutoClick();
+	public static final AutoClickerBlock AUTO_CLICKER = new AutoClickerBlock();
 	public static final MenuType<AutoClickContainer> CONTAINER = ContainerUtil.makeType(AutoClickContainer::new);
-	public static final BlockEntityType<TileAutoClick> TILE = new TickingBlockEntityType<>(TileAutoClick::new, ImmutableSet.of(AUTO_CLICKER), false, true);
+	public static final BlockEntityType<AutoClickerTile> TILE = new TickingBlockEntityType<>(AutoClickerTile::new, ImmutableSet.of(AUTO_CLICKER), false, true);
 
 	public ClickMachine() {
 		MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::blockJoin);

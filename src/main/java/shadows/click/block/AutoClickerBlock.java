@@ -27,19 +27,19 @@ import shadows.click.block.gui.AutoClickContainer;
 import shadows.placebo.block_entity.TickingEntityBlock;
 import shadows.placebo.container.ContainerUtil;
 
-public class BlockAutoClick extends Block implements TickingEntityBlock {
+public class AutoClickerBlock extends Block implements TickingEntityBlock {
 
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-	public BlockAutoClick() {
+	public AutoClickerBlock() {
 		super(BlockBehaviour.Properties.of(Material.METAL).strength(5));
 		this.registerDefaultState(this.defaultBlockState().setValue(ACTIVE, true));
 	}
 
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-		return new TileAutoClick(pPos, pState);
+		return new AutoClickerTile(pPos, pState);
 	}
 
 	@Override
@@ -60,8 +60,8 @@ public class BlockAutoClick extends Block implements TickingEntityBlock {
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		BlockEntity te = world.getBlockEntity(pos);
-		if (!world.isClientSide && te instanceof TileAutoClick && placer instanceof Player) {
-			((TileAutoClick) te).setPlayer((Player) placer);
+		if (!world.isClientSide && te instanceof AutoClickerTile && placer instanceof Player) {
+			((AutoClickerTile) te).setPlayer((Player) placer);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class BlockAutoClick extends Block implements TickingEntityBlock {
 	public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() == this && newState.getBlock() == this) return;
 		BlockEntity te = world.getBlockEntity(pos);
-		if (te instanceof TileAutoClick) popResource(world, pos, ((TileAutoClick) te).held.getStackInSlot(0));
+		if (te instanceof AutoClickerTile) popResource(world, pos, ((AutoClickerTile) te).held.getStackInSlot(0));
 		super.onRemove(state, world, pos, newState, isMoving);
 	}
 
@@ -97,8 +97,8 @@ public class BlockAutoClick extends Block implements TickingEntityBlock {
 	@Deprecated
 	public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
 		BlockEntity te = pLevel.getBlockEntity(pPos);
-		if (te instanceof TileAutoClick) {
-			ItemStack i = ((TileAutoClick) te).held.getStackInSlot(0);
+		if (te instanceof AutoClickerTile) {
+			ItemStack i = ((AutoClickerTile) te).held.getStackInSlot(0);
 			if (i.isEmpty()) return 0;
 			if (i.getMaxStackSize() == 1 && i.isDamageableItem()) {
 				return Mth.floor(15F * (i.getMaxDamage() - i.getDamageValue()) / i.getMaxDamage());

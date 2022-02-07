@@ -1,5 +1,7 @@
 package shadows.click.block.gui;
 
+import java.util.function.BooleanSupplier;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -16,11 +18,13 @@ public class ClickerCheckboxButton extends Checkbox {
 
 	protected final AutoClickScreen gui;
 	protected final int index;
+	protected final BooleanSupplier selected;
 
-	public ClickerCheckboxButton(AutoClickScreen gui, int x, int y, int width, int height, Component title, int index) {
+	public ClickerCheckboxButton(AutoClickScreen gui, int x, int y, int width, int height, Component title, int index, BooleanSupplier selected) {
 		super(x, y, width, height, title, false);
 		this.gui = gui;
 		this.index = index;
+		this.selected = selected;
 	}
 
 	@Override
@@ -35,7 +39,7 @@ public class ClickerCheckboxButton extends Checkbox {
 
 	@Override
 	public boolean selected() {
-		return this.gui.getMenu().getData().get(this.index) != 0;
+		return selected.getAsBoolean();
 	}
 
 	@Override

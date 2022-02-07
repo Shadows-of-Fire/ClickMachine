@@ -43,8 +43,8 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
 		int x = this.width / 2 - this.imageWidth / 2 + 30;
 		int y = this.height / 2 - this.imageHeight / 2 + 26;
 		this.slider = this.addRenderableWidget(new SpeedSlider(this, x, y, 100, 20));
-		this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 22, 20, 20, new TranslatableComponent("gui.clickmachine.sneaking"), 3));
-		this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 44, 20, 20, new TranslatableComponent("gui.clickmachine.right_click"), 4));
+		this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 22, 20, 20, new TranslatableComponent("gui.clickmachine.sneaking"), 3, this.menu::isSneaking));
+		this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 44, 20, 20, new TranslatableComponent("gui.clickmachine.right_click"), 4, this.menu::isRightClicking));
 	}
 
 	@Override
@@ -65,8 +65,8 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
 		this.font.draw(stack, this.player.getInventory().getDisplayName().getString(), 8, this.imageHeight - 96 + 2, 4210752);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void renderBg(PoseStack stack, float partialTicks, int mouseX, int mouseY) {
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
