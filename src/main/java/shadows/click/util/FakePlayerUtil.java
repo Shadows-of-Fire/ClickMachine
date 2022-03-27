@@ -112,7 +112,7 @@ public class FakePlayerUtil {
 		double x = a == Axis.X && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getX() / 1.9D;
 		double y = 0.5 + sideVec.getY() / 1.9D;
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
-		player.moveTo(pos.getX() + x, pos.getY() + y, pos.getZ() + z, yaw, pitch);
+		player.moveTo(pos.getX() + x, pos.getY() + y - 2, pos.getZ() + z, yaw, pitch);
 		if (!toHold.isEmpty()) player.getAttributes().addTransientAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlot.MAINHAND));
 		player.setShiftKeyDown(sneaking);
 	}

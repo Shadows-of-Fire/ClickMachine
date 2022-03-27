@@ -26,6 +26,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.ObjectHolder;
 import shadows.click.block.AutoClickerBlock;
 import shadows.click.block.AutoClickerTile;
 import shadows.click.block.gui.AutoClickContainer;
@@ -44,9 +45,14 @@ public class ClickMachine {
 	public static final Logger LOG = LogManager.getLogger(MODID);
 	public static final RecipeHelper HELPER = new RecipeHelper(MODID);
 
-	public static final AutoClickerBlock AUTO_CLICKER = new AutoClickerBlock();
-	public static final MenuType<AutoClickContainer> CONTAINER = ContainerUtil.makeType(AutoClickContainer::new);
-	public static final BlockEntityType<AutoClickerTile> TILE = new TickingBlockEntityType<>(AutoClickerTile::new, ImmutableSet.of(AUTO_CLICKER), false, true);
+	@ObjectHolder(ClickMachine.MODID + ":auto_clicker")
+	public static final AutoClickerBlock AUTO_CLICKER = null;
+
+	@ObjectHolder(ClickMachine.MODID + ":container")
+	public static final MenuType<AutoClickContainer> CONTAINER = null;
+
+	@ObjectHolder(ClickMachine.MODID + ":tile")
+	public static final BlockEntityType<AutoClickerTile> TILE = null;
 
 	public ClickMachine() {
 		MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::blockJoin);
@@ -56,18 +62,19 @@ public class ClickMachine {
 
 	@SubscribeEvent
 	public void blocks(Register<Block> e) {
-		e.getRegistry().register(AUTO_CLICKER.setRegistryName(MODID, "auto_clicker"));
-		ForgeRegistries.ITEMS.register(new BlockItem(AUTO_CLICKER, new Item.Properties().tab(CreativeModeTab.TAB_REDSTONE)).setRegistryName(AUTO_CLICKER.getRegistryName()));
+		Block b;
+		e.getRegistry().register(b = new AutoClickerBlock().setRegistryName(MODID, "auto_clicker"));
+		ForgeRegistries.ITEMS.register(new BlockItem(b, new Item.Properties().tab(CreativeModeTab.TAB_REDSTONE)).setRegistryName(b.getRegistryName()));
 	}
 
 	@SubscribeEvent
 	public void container(Register<MenuType<?>> e) {
-		e.getRegistry().register(CONTAINER.setRegistryName(MODID, "container"));
+		e.getRegistry().register(ContainerUtil.makeType(AutoClickContainer::new).setRegistryName(MODID, "container"));
 	}
 
 	@SubscribeEvent
 	public void tiles(Register<BlockEntityType<?>> e) {
-		e.getRegistry().register(TILE.setRegistryName(MODID, "tile"));
+		e.getRegistry().register(new TickingBlockEntityType<>(AutoClickerTile::new, ImmutableSet.of(AUTO_CLICKER), false, true).setRegistryName(MODID, "tile"));
 	}
 
 	@SubscribeEvent

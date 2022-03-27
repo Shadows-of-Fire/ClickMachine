@@ -1,3 +1,8 @@
+## 6.0.4
+* Fixed startup crash from registry issues.
+* Fixed Click Machine being unable to use buckets.
+  * This is done by changing the position of the fake player to be 2 blocks lower, so the eye pos is where the "click" happens from.
+
 ## 6.0.3
 * Rebuilt for 1.18.2
 
