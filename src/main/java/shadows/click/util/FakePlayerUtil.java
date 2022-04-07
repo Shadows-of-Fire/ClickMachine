@@ -43,6 +43,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -112,7 +113,7 @@ public class FakePlayerUtil {
 		double x = a == Axis.X && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getX() / 1.9D;
 		double y = 0.5 + sideVec.getY() / 1.9D;
 		double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
-		player.moveTo(pos.getX() + x, pos.getY() + y - 2, pos.getZ() + z, yaw, pitch);
+		player.moveTo(pos.getX() + x, pos.getY() + y - player.getEyeHeight(), pos.getZ() + z, yaw, pitch);
 		if (!toHold.isEmpty()) player.getAttributes().addTransientAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlot.MAINHAND));
 		player.setShiftKeyDown(sneaking);
 	}
@@ -141,19 +142,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack rightClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3 base = new Vec3(player.getX(), player.getY(), player.getZ());
-		Vec3 look = player.getLookAngle();
-		Vec3 target = base.add(look.x * 5, look.y * 5, look.z * 5);
-		HitResult trace = world.clip(new ClipContext(base, target, Block.OUTLINE, Fluid.NONE, player));
-		HitResult traceEntity = traceEntities(player, base, target, world);
-		HitResult toUse = trace == null ? traceEntity : trace;
-
-		if (trace != null && traceEntity != null) {
-			double d1 = trace.getLocation().distanceTo(base);
-			double d2 = traceEntity.getLocation().distanceTo(base);
-			toUse = traceEntity.getType() == HitResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
-		}
-
+		HitResult toUse = rayTrace(player, world, player.getAttributeValue(ForgeMod.REACH_DISTANCE.get()));
 		if (toUse == null) return player.getMainHandItem();
 
 		ItemStack itemstack = player.getMainHandItem();
@@ -194,19 +183,7 @@ public class FakePlayerUtil {
 	 * @return The remainder of whatever the player was holding.  This should be set back into the tile's stack handler or similar.
 	 */
 	public static ItemStack leftClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
-		Vec3 base = new Vec3(player.getX(), player.getY(), player.getZ());
-		Vec3 look = player.getLookAngle();
-		Vec3 target = base.add(look.x * 5, look.y * 5, look.z * 5);
-		HitResult trace = world.clip(new ClipContext(base, target, Block.OUTLINE, Fluid.NONE, player));
-		HitResult traceEntity = traceEntities(player, base, target, world);
-		HitResult toUse = trace == null ? traceEntity : trace;
-
-		if (trace != null && traceEntity != null) {
-			double d1 = trace.getLocation().distanceTo(base);
-			double d2 = traceEntity.getLocation().distanceTo(base);
-			toUse = traceEntity.getType() == HitResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
-		}
-
+		HitResult toUse = rayTrace(player, world, player.getAttributeValue(ForgeMod.REACH_DISTANCE.get()));
 		if (toUse == null) return player.getMainHandItem();
 
 		if (toUse.getType() == HitResult.Type.ENTITY) {
@@ -300,7 +277,6 @@ public class FakePlayerUtil {
 	 */
 	public static boolean processUseEntity(UsefulFakePlayer player, Level world, Entity entity, @Nullable HitResult result, InteractionType action) {
 		if (entity != null) {
-
 			if (player.distanceToSqr(entity) < 36) {
 				if (action == InteractionType.INTERACT) {
 					return player.interactOn(entity, InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
@@ -318,13 +294,23 @@ public class FakePlayerUtil {
 	}
 
 	/**
-	 * A copy-paste of the SideOnly {@link Entity#rayTrace(double, float)}
+	 * Util to perform a raytrace for what the fake player is looking at.
 	 */
-	public static HitResult rayTrace(UsefulFakePlayer player, Level world, double reachDist, float partialTicks) {
-		Vec3 vec3d = player.getEyePosition(partialTicks);
-		Vec3 vec3d1 = player.getViewVector(partialTicks);
-		Vec3 vec3d2 = vec3d.add(vec3d1.x * reachDist, vec3d1.y * reachDist, vec3d1.z * reachDist);
-		return world.clip(new ClipContext(vec3d, vec3d2, Block.OUTLINE, Fluid.NONE, player));
+	public static HitResult rayTrace(UsefulFakePlayer player, Level level, double reachDist) {
+		Vec3 base = new Vec3(player.getX(), player.getEyeY(), player.getZ());
+		Vec3 look = player.getLookAngle();
+		Vec3 target = base.add(look.x * reachDist, look.y * reachDist, look.z * reachDist);
+		HitResult trace = level.clip(new ClipContext(base, target, Block.OUTLINE, Fluid.NONE, player));
+		HitResult traceEntity = traceEntities(player, base, target, level);
+		HitResult toUse = trace == null ? traceEntity : trace;
+
+		if (trace != null && traceEntity != null) {
+			double d1 = trace.getLocation().distanceTo(base);
+			double d2 = traceEntity.getLocation().distanceTo(base);
+			toUse = traceEntity.getType() == HitResult.Type.ENTITY && d1 > d2 ? traceEntity : trace;
+		}
+
+		return toUse;
 	}
 
 	public static enum InteractionType {

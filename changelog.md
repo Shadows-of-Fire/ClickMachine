@@ -1,3 +1,7 @@
+## 6.0.5
+* Follow-up fix to a bug added in 6.0.4, the ray-trace now properly uses the eye position instead of the feet position.
+* When the click machine is using items with extra reach distance, the range of the machine will increase accordingly.
+
 ## 6.0.4
 * Fixed startup crash from registry issues.
 * Fixed Click Machine being unable to use buckets.
