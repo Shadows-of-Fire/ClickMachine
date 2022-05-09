@@ -1,0 +1,10 @@
+{
+    "gui.clickmachine.autoclick": "클릭 머신",
+    "block.clickmachine.auto_clicker": "클릭 머신",
+    "gui.clickmachine.speed": "%s 클릭/초",
+    "gui.clickmachine.sneaking": "웅크리기",
+    "gui.clickmachine.right_click": "우클릭",
+    "gui.clickmachine.power": "FE: %s/%s",
+	"gui.clickmachine.power.usage": "%s FE/초 사용 중",
+	"gui.clickmachine.rainbow_magic": "레인보우 매직으로 작동됩니다!"
+}
