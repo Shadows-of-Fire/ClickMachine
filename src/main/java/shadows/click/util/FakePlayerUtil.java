@@ -47,7 +47,6 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import shadows.placebo.util.DeadPacketListenerImpl;
 
 @EventBusSubscriber
 public class FakePlayerUtil {
@@ -91,7 +90,6 @@ public class FakePlayerUtil {
 	public static UsefulFakePlayer getPlayer(Level world, GameProfile profile) {
 		return PLAYERS.computeIfAbsent(world, p -> new HashMap<>()).computeIfAbsent(profile, p -> {
 			UsefulFakePlayer player = new UsefulFakePlayer(world, profile);
-			player.connection = new DeadPacketListenerImpl(player);
 			return player;
 		});
 	}
@@ -192,7 +190,7 @@ public class FakePlayerUtil {
 			BlockPos blockpos = ((BlockHitResult) toUse).getBlockPos();
 			BlockState state = world.getBlockState(blockpos);
 			if (state != sourceState && state.getMaterial() != Material.AIR) {
-				player.gameMode.handleBlockBreakAction(blockpos, Action.START_DESTROY_BLOCK, ((BlockHitResult) toUse).getDirection(), player.level.getMaxBuildHeight());
+				player.gameMode.handleBlockBreakAction(blockpos, Action.START_DESTROY_BLOCK, ((BlockHitResult) toUse).getDirection(), player.level.getMaxBuildHeight(), 0);
 				return player.getMainHandItem();
 			}
 		}
@@ -201,7 +199,7 @@ public class FakePlayerUtil {
 			for (int i = 1; i <= 5; i++) {
 				BlockState state = world.getBlockState(pos.relative(side, i));
 				if (state != sourceState && state.getMaterial() != Material.AIR) {
-					player.gameMode.handleBlockBreakAction(pos.relative(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.level.getMaxBuildHeight());
+					player.gameMode.handleBlockBreakAction(pos.relative(side, i), Action.START_DESTROY_BLOCK, side.getOpposite(), player.level.getMaxBuildHeight(), 0);
 					return player.getMainHandItem();
 				}
 			}

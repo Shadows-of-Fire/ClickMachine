@@ -13,6 +13,6 @@ public class ClickMachineClient {
 
 	@SubscribeEvent
 	public static void setup(FMLClientSetupEvent e) {
-		MenuScreens.register(ClickMachine.CONTAINER, AutoClickScreen::new);
+		MenuScreens.register(ClickMachine.AUTO_CLICKER_MENU, AutoClickScreen::new);
 	}
 }

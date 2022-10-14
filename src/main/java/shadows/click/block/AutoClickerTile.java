@@ -18,10 +18,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import shadows.click.ClickMachine;
@@ -51,7 +50,7 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 	protected final EasyContainerData data = new EasyContainerData();
 
 	public AutoClickerTile(BlockPos pos, BlockState state) {
-		super(ClickMachine.TILE, pos, state);
+		super(ClickMachine.AUTO_CLICKER_TILE, pos, state);
 		this.held = new ItemStackHandler(1) {
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
@@ -103,8 +102,8 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return this.ihopt.cast();
-		if (cap == CapabilityEnergy.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
+		if (cap == ForgeCapabilities.ITEM_HANDLER) return this.ihopt.cast();
+		if (cap == ForgeCapabilities.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
 		return super.getCapability(cap, side);
 	}
 

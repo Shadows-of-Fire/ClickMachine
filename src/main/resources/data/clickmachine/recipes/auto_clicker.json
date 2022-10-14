@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "clickmachine",
+  "pattern": [
+    "DDD",
+    "DCD",
+    "DRD"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diorite"
+    },
+	"C": {
+      "item": "minecraft:chorus_flower"
+    },
+	"R": {
+      "tag": "forge:storage_blocks/redstone"
+    }
+  },
+  "result": {
+    "item": "clickmachine:auto_clicker",
+    "count": 1
+  }
+}

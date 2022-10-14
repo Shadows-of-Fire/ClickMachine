@@ -11,7 +11,7 @@ import shadows.placebo.container.BlockEntityContainer;
 public class AutoClickContainer extends BlockEntityContainer<AutoClickerTile> {
 
 	public AutoClickContainer(int id, Inventory pInv, BlockPos pos) {
-		super(ClickMachine.CONTAINER, id, pInv, pos);
+		super(ClickMachine.AUTO_CLICKER_MENU, id, pInv, pos);
 		this.addSlot(new SlotItemHandler(this.tile.getHandler(), 0, 8, 50)); //Add clicker item slot
 		this.addPlayerSlots(pInv, 8, 114);
 		this.mover.registerRule((stack, slot) -> slot == 0, 1, this.slots.size());

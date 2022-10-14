@@ -2,8 +2,8 @@ package shadows.click.block.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import shadows.click.ClickMachineConfig;
 
@@ -16,7 +16,7 @@ public class SpeedSlider extends AbstractSliderButton {
 	protected final AutoClickScreen gui;
 
 	public SpeedSlider(AutoClickScreen gui, int x, int y, int width, int height) {
-		super(x, y, width, height, TextComponent.EMPTY, normalizeValue(gui.getMenu().getSpeedIdx()));
+		super(x, y, width, height, CommonComponents.EMPTY, normalizeValue(gui.getMenu().getSpeedIdx()));
 		this.gui = gui;
 		this.updateMessage();
 	}
@@ -26,7 +26,7 @@ public class SpeedSlider extends AbstractSliderButton {
 		int spd = denormalizeValue(this.value);
 		int ticksPerClick = ClickMachineConfig.speeds[spd];
 		double cps = 1D / ticksPerClick * 20;
-		this.setMessage(new TranslatableComponent("gui.clickmachine.speed", String.format("%.2f", cps)));
+		this.setMessage(Component.translatable("gui.clickmachine.speed", String.format("%.2f", cps)));
 	}
 
 	@Override
