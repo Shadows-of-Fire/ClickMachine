@@ -1,11 +1,8 @@
 package shadows.click.util;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
@@ -47,11 +44,10 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import shadows.click.block.AutoClickerTile;
 
 @EventBusSubscriber
 public class FakePlayerUtil {
-
-	private static final Map<Level, Map<GameProfile, UsefulFakePlayer>> PLAYERS = new WeakHashMap<>();
 
 	public static class UsefulFakePlayer extends FakePlayer {
 
@@ -80,18 +76,15 @@ public class FakePlayerUtil {
 
 		@Override
 		public Entity changeDimension(ServerLevel server, ITeleporter teleporter) {
-			return getPlayer(server, this.getGameProfile());
+			return createPlayer(server, this.getGameProfile());
 		}
 	}
 
 	/**
-	 * Only store this as a WeakReference, or you'll cause memory leaks.
+	 * Creates a new UsefulFakePlayer. Each {@link AutoClickerTile} needs its own.
 	 */
-	public static UsefulFakePlayer getPlayer(Level world, GameProfile profile) {
-		return PLAYERS.computeIfAbsent(world, p -> new HashMap<>()).computeIfAbsent(profile, p -> {
-			UsefulFakePlayer player = new UsefulFakePlayer(world, profile);
-			return player;
-		});
+	public static UsefulFakePlayer createPlayer(Level world, GameProfile profile) {
+	    return new UsefulFakePlayer(world, profile);
 	}
 
 	/**

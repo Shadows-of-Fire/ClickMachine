@@ -43,7 +43,7 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 	boolean rightClick = true;
 
 	GameProfile profile;
-	WeakReference<UsefulFakePlayer> player;
+	UsefulFakePlayer player;
 
 	int counter = 0;
 
@@ -51,7 +51,7 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 
 	public AutoClickerTile(BlockPos pos, BlockState state) {
 		super(ClickMachine.AUTO_CLICKER_TILE, pos, state);
-		this.held = new ItemStackHandler(1) {
+		this.held = new ItemStackHandler(1){
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
 				return !ClickMachineConfig.blacklistedItems.contains(stack.getItem());
@@ -66,13 +66,13 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 	@Override
 	public void serverTick(Level level, BlockPos pos, BlockState state) {
 		if (this.player == null) {
-			this.player = new WeakReference<>(FakePlayerUtil.getPlayer(level, this.profile != null ? this.profile : DEFAULT_CLICKER));
+			this.player = FakePlayerUtil.createPlayer(level, this.profile != null ? this.profile : DEFAULT_CLICKER);
 		}
 		if (!level.hasNeighborSignal(this.worldPosition)) {
 			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[this.getSpeedIndex()] : 0;
 			if (this.power.extractEnergy(use, true) == use) {
 				this.power.extractEnergy(use, false);
-				if (this.player != null && this.counter++ % this.getSpeed() == 0) {
+				if (this.counter++ % this.getSpeed() == 0) {
 					Direction facing = level.getBlockState(this.worldPosition).getValue(AutoClickerBlock.FACING);
 					FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
 					ItemStack result = this.held.getStackInSlot(0);
@@ -85,11 +85,14 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 			if (!state.getValue(AutoClickerBlock.ACTIVE)) {
 				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, true), 2);
 			}
-		} else {
+		}
+		else {
 			if (state.getValue(AutoClickerBlock.ACTIVE)) {
 				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, false), 2);
 			}
 		}
+
+		 this.player.getCooldowns().tick();
 	}
 
 	public void setPlayer(Player player) {
@@ -108,7 +111,7 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
 	}
 
 	UsefulFakePlayer getPlayer() {
-		return this.player.get();
+		return this.player;
 	}
 
 	public IItemHandler getHandler() {
