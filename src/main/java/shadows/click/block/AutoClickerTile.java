@@ -1,6 +1,5 @@
 package shadows.click.block;
 
-import java.lang.ref.WeakReference;
 import java.util.UUID;
 import java.util.function.Consumer;
 

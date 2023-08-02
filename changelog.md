@@ -1,3 +1,11 @@
+## Future
+* Added support for holding down left or right click.
+
+## 7.0.1
+* Added support for item cooldowns. When an item with a cooldown is used, the cooldown period must elapse before using it again.
+  * The previous behavior was that an item with a cooldown could never be used again until the block was broken.
+  * This change also means that each clicker is now allocated its own fake player, instead of a shared one per uuid.
+
 ## 7.0.0
 * Updated to 1.19.2
 
