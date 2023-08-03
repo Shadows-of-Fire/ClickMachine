@@ -5,6 +5,10 @@ import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
 
+import dev.shadowsoffire.placebo.block_entity.TickingBlockEntity;
+import dev.shadowsoffire.placebo.cap.ModifiableEnergyStorage;
+import dev.shadowsoffire.placebo.menu.SimpleDataSlots;
+import dev.shadowsoffire.placebo.menu.SimpleDataSlots.IDataAutoRegister;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -26,201 +30,197 @@ import shadows.click.ClickMachine;
 import shadows.click.ClickMachineConfig;
 import shadows.click.util.FakePlayerUtil;
 import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
-import shadows.placebo.block_entity.TickingBlockEntity;
-import shadows.placebo.cap.ModifiableEnergyStorage;
-import shadows.placebo.container.EasyContainerData;
-import shadows.placebo.container.EasyContainerData.IDataAutoRegister;
 
 public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
 
-	public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
+    public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
-	ItemStackHandler held;
-	ModifiableEnergyStorage power = new ModifiableEnergyStorage(ClickMachineConfig.maxPowerStorage);
-	int speedIdx = 0;
-	boolean sneak = false;
-	boolean rightClick = true;
+    ItemStackHandler held;
+    ModifiableEnergyStorage power = new ModifiableEnergyStorage(ClickMachineConfig.maxPowerStorage);
+    int speedIdx = 0;
+    boolean sneak = false;
+    boolean rightClick = true;
 
-	GameProfile profile;
-	UsefulFakePlayer player;
+    GameProfile profile;
+    UsefulFakePlayer player;
 
-	int counter = 0;
+    int counter = 0;
 
-	protected final EasyContainerData data = new EasyContainerData();
+    protected final SimpleDataSlots data = new SimpleDataSlots();
 
-	public AutoClickerTile(BlockPos pos, BlockState state) {
-		super(ClickMachine.AUTO_CLICKER_TILE, pos, state);
-		this.held = new ItemStackHandler(1){
-			@Override
-			public boolean isItemValid(int slot, ItemStack stack) {
-				return !ClickMachineConfig.blacklistedItems.contains(stack.getItem());
-			}
-		};
-		this.data.addEnergy(this.power);
-		this.data.addData(() -> this.speedIdx, v -> this.speedIdx = v);
-		this.data.addData(() -> this.sneak, v -> this.sneak = v);
-		this.data.addData(() -> this.rightClick, v -> this.rightClick = v);
-	}
+    public AutoClickerTile(BlockPos pos, BlockState state) {
+        super(ClickMachine.AUTO_CLICKER_TILE, pos, state);
+        this.held = new ItemStackHandler(1){
+            @Override
+            public boolean isItemValid(int slot, ItemStack stack) {
+                return !ClickMachineConfig.blacklistedItems.contains(stack.getItem());
+            }
+        };
+        this.data.addEnergy(this.power);
+        this.data.addData(() -> this.speedIdx, v -> this.speedIdx = v);
+        this.data.addData(() -> this.sneak, v -> this.sneak = v);
+        this.data.addData(() -> this.rightClick, v -> this.rightClick = v);
+    }
 
-	@Override
-	public void serverTick(Level level, BlockPos pos, BlockState state) {
-		if (this.player == null) {
-			this.player = FakePlayerUtil.createPlayer(level, this.profile != null ? this.profile : DEFAULT_CLICKER);
-		}
-		if (!level.hasNeighborSignal(this.worldPosition)) {
-			int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[this.getSpeedIndex()] : 0;
-			if (this.power.extractEnergy(use, true) == use) {
-				this.power.extractEnergy(use, false);
-				if (this.counter++ % this.getSpeed() == 0) {
-					Direction facing = level.getBlockState(this.worldPosition).getValue(AutoClickerBlock.FACING);
-					FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
-					ItemStack result = this.held.getStackInSlot(0);
-					if (this.rightClick) result = FakePlayerUtil.rightClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
-					else result = FakePlayerUtil.leftClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
-					FakePlayerUtil.cleanupFakePlayerFromUse(this.getPlayer(), result, this.held.getStackInSlot(0), this);
-					this.setChanged();
-				}
-			}
-			if (!state.getValue(AutoClickerBlock.ACTIVE)) {
-				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, true), 2);
-			}
-		}
-		else {
-			if (state.getValue(AutoClickerBlock.ACTIVE)) {
-				level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, false), 2);
-			}
-		}
+    @Override
+    public void serverTick(Level level, BlockPos pos, BlockState state) {
+        if (this.player == null) {
+            this.player = FakePlayerUtil.createPlayer(level, this.profile != null ? this.profile : DEFAULT_CLICKER);
+        }
+        if (!level.hasNeighborSignal(this.worldPosition)) {
+            int use = ClickMachineConfig.usesRF ? ClickMachineConfig.powerPerSpeed[this.getSpeedIndex()] : 0;
+            if (this.power.extractEnergy(use, true) == use) {
+                this.power.extractEnergy(use, false);
+                if (this.counter++ % this.getSpeed() == 0) {
+                    Direction facing = level.getBlockState(this.worldPosition).getValue(AutoClickerBlock.FACING);
+                    FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
+                    ItemStack result = this.held.getStackInSlot(0);
+                    if (this.rightClick) result = FakePlayerUtil.rightClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
+                    else result = FakePlayerUtil.leftClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
+                    FakePlayerUtil.cleanupFakePlayerFromUse(this.getPlayer(), result, this.held.getStackInSlot(0), this);
+                    this.setChanged();
+                }
+            }
+            if (!state.getValue(AutoClickerBlock.ACTIVE)) {
+                level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, true), 2);
+            }
+        }
+        else {
+            if (state.getValue(AutoClickerBlock.ACTIVE)) {
+                level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, false), 2);
+            }
+        }
 
-		 this.player.getCooldowns().tick();
-	}
+        this.player.getCooldowns().tick();
+    }
 
-	public void setPlayer(Player player) {
-		this.profile = player.getGameProfile();
-		this.setChanged();
-	}
+    public void setPlayer(Player player) {
+        this.profile = player.getGameProfile();
+        this.setChanged();
+    }
 
-	LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> this.held);
-	LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> this.power);
+    LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> this.held);
+    LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> this.power);
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER) return this.ihopt.cast();
-		if (cap == ForgeCapabilities.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
-		return super.getCapability(cap, side);
-	}
+    @Override
+    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
+        if (cap == ForgeCapabilities.ITEM_HANDLER) return this.ihopt.cast();
+        if (cap == ForgeCapabilities.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
+        return super.getCapability(cap, side);
+    }
 
-	UsefulFakePlayer getPlayer() {
-		return this.player;
-	}
+    UsefulFakePlayer getPlayer() {
+        return this.player;
+    }
 
-	public IItemHandler getHandler() {
-		return this.held;
-	}
+    public IItemHandler getHandler() {
+        return this.held;
+    }
 
-	public int getSpeed() {
-		return ClickMachineConfig.speeds[this.getSpeedIndex()];
-	}
+    public int getSpeed() {
+        return ClickMachineConfig.speeds[this.getSpeedIndex()];
+    }
 
-	public int getSpeedIndex() {
-		return this.speedIdx;
-	}
+    public int getSpeedIndex() {
+        return this.speedIdx;
+    }
 
-	public void setSpeedIndex(int speedIdx) {
-		this.speedIdx = speedIdx;
-		this.setChanged();
-	}
+    public void setSpeedIndex(int speedIdx) {
+        this.speedIdx = speedIdx;
+        this.setChanged();
+    }
 
-	public boolean isSneaking() {
-		return this.sneak;
-	}
+    public boolean isSneaking() {
+        return this.sneak;
+    }
 
-	public void setSneaking(boolean sneak) {
-		this.sneak = sneak;
-		this.setChanged();
-	}
+    public void setSneaking(boolean sneak) {
+        this.sneak = sneak;
+        this.setChanged();
+    }
 
-	public boolean isRightClicking() {
-		return this.rightClick;
-	}
+    public boolean isRightClicking() {
+        return this.rightClick;
+    }
 
-	public void setRightClicking(boolean rightClick) {
-		this.rightClick = rightClick;
-		this.setChanged();
-	}
+    public void setRightClicking(boolean rightClick) {
+        this.rightClick = rightClick;
+        this.setChanged();
+    }
 
-	static final String tagUUID = "uuid";
-	static final String tagName = "name";
-	static final String tagCounter = "counter";
-	static final String tagSpeed = "speed_index";
-	static final String tagSneak = "sneak";
-	static final String tagRightClick = "right_click";
-	static final String tagHandler = "inv";
-	static final String tagEnergy = "fe";
+    static final String tagUUID = "uuid";
+    static final String tagName = "name";
+    static final String tagCounter = "counter";
+    static final String tagSpeed = "speed_index";
+    static final String tagSneak = "sneak";
+    static final String tagRightClick = "right_click";
+    static final String tagHandler = "inv";
+    static final String tagEnergy = "fe";
 
-	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
-		if (this.profile != null) {
-			tag.putUUID(tagUUID, this.profile.getId());
-			tag.putString(tagName, this.profile.getName());
-		}
-		tag.put(tagHandler, this.held.serializeNBT());
-		tag.putInt(tagCounter, this.counter % this.getSpeed());
-		this.writeSyncData(tag);
-	}
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        if (this.profile != null) {
+            tag.putUUID(tagUUID, this.profile.getId());
+            tag.putString(tagName, this.profile.getName());
+        }
+        tag.put(tagHandler, this.held.serializeNBT());
+        tag.putInt(tagCounter, this.counter % this.getSpeed());
+        this.writeSyncData(tag);
+    }
 
-	CompoundTag writeSyncData(CompoundTag tag) {
-		tag.putInt(tagSpeed, this.getSpeedIndex());
-		tag.putBoolean(tagSneak, this.sneak);
-		tag.putBoolean(tagRightClick, this.rightClick);
-		tag.putInt(tagEnergy, this.power.getEnergyStored());
-		return tag;
-	}
+    CompoundTag writeSyncData(CompoundTag tag) {
+        tag.putInt(tagSpeed, this.getSpeedIndex());
+        tag.putBoolean(tagSneak, this.sneak);
+        tag.putBoolean(tagRightClick, this.rightClick);
+        tag.putInt(tagEnergy, this.power.getEnergyStored());
+        return tag;
+    }
 
-	void readSyncData(CompoundTag tag) {
-		this.setSpeedIndex(tag.getInt(tagSpeed));
-		this.sneak = tag.getBoolean(tagSneak);
-		this.rightClick = tag.getBoolean(tagRightClick);
-		this.setPower(tag.getInt(tagEnergy));
-	}
+    void readSyncData(CompoundTag tag) {
+        this.setSpeedIndex(tag.getInt(tagSpeed));
+        this.sneak = tag.getBoolean(tagSneak);
+        this.rightClick = tag.getBoolean(tagRightClick);
+        this.setPower(tag.getInt(tagEnergy));
+    }
 
-	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
-		if (tag.contains(tagUUID) && tag.contains(tagName)) this.profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
-		if (tag.contains(tagHandler)) this.held.deserializeNBT(tag.getCompound(tagHandler));
-		this.counter = tag.getInt(tagCounter);
-		this.readSyncData(tag);
-	}
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains(tagUUID) && tag.contains(tagName)) this.profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
+        if (tag.contains(tagHandler)) this.held.deserializeNBT(tag.getCompound(tagHandler));
+        this.counter = tag.getInt(tagCounter);
+        this.readSyncData(tag);
+    }
 
-	@Override
-	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, b -> ((AutoClickerTile) b).writeSyncData(new CompoundTag()));
-	}
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this, b -> ((AutoClickerTile) b).writeSyncData(new CompoundTag()));
+    }
 
-	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-		this.readSyncData(pkt.getTag());
-	}
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        this.readSyncData(pkt.getTag());
+    }
 
-	public int getPower() {
-		return this.power.getEnergyStored();
-	}
+    public int getPower() {
+        return this.power.getEnergyStored();
+    }
 
-	public void setPower(int energy) {
-		this.power.extractEnergy(this.power.getMaxEnergyStored(), false);
-		this.power.receiveEnergy(energy, false);
-		this.setChanged();
-	}
+    public void setPower(int energy) {
+        this.power.extractEnergy(this.power.getMaxEnergyStored(), false);
+        this.power.receiveEnergy(energy, false);
+        this.setChanged();
+    }
 
-	@Override
-	public void accept(ItemStack s) {
-		this.held.setStackInSlot(0, s);
-	}
+    @Override
+    public void accept(ItemStack s) {
+        this.held.setStackInSlot(0, s);
+    }
 
-	@Override
-	public void registerSlots(Consumer<DataSlot> consumer) {
-		this.data.register(consumer);
-	}
+    @Override
+    public void registerSlots(Consumer<DataSlot> consumer) {
+        this.data.register(consumer);
+    }
 
 }

@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import dev.shadowsoffire.placebo.config.Configuration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
-import shadows.placebo.config.Configuration;
 
 public class ClickMachineConfig {
 

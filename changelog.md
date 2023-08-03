@@ -1,6 +1,9 @@
 ## Future
 * Added support for holding down left or right click.
 
+## 8.0.0
+* Updated to 1.20.1
+
 ## 7.0.1
 * Added support for item cooldowns. When an item with a cooldown is used, the cooldown period must elapse before using it again.
   * The previous behavior was that an item with a cooldown could never be used again until the block was broken.
