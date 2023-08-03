@@ -1,4 +1,4 @@
-package shadows.click.util;
+package dev.shadowsoffire.clickmachine.util;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import com.mojang.authlib.GameProfile;
 
+import dev.shadowsoffire.clickmachine.block.AutoClickerTile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -43,7 +44,6 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import shadows.click.block.AutoClickerTile;
 
 @EventBusSubscriber
 public class FakePlayerUtil {

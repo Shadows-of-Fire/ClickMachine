@@ -1,4 +1,4 @@
-package shadows.click;
+package dev.shadowsoffire.clickmachine;
 
 import java.util.Arrays;
 import java.util.HashSet;

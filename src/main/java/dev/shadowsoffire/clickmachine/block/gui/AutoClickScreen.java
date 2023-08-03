@@ -1,8 +1,10 @@
-package shadows.click.block.gui;
+package dev.shadowsoffire.clickmachine.block.gui;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.shadowsoffire.clickmachine.ClickMachine;
+import dev.shadowsoffire.clickmachine.ClickMachineConfig;
 import dev.shadowsoffire.placebo.menu.IDataUpdateListener;
 import dev.shadowsoffire.placebo.screen.PlaceboContainerScreen;
 import dev.shadowsoffire.placebo.util.ClientUtil;
@@ -12,8 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import shadows.click.ClickMachine;
-import shadows.click.ClickMachineConfig;
 
 public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> implements IDataUpdateListener {
 

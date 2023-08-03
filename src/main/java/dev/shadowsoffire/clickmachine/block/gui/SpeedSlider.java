@@ -1,11 +1,11 @@
-package shadows.click.block.gui;
+package dev.shadowsoffire.clickmachine.block.gui;
 
+import dev.shadowsoffire.clickmachine.ClickMachineConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import shadows.click.ClickMachineConfig;
 
 /// NOTE TO URSELF - update the slider on first load of world - either needs packet notif on change or slider needs to update when data is received on client!:tm:
 public class SpeedSlider extends AbstractSliderButton {

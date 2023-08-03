@@ -1,5 +1,6 @@
-package shadows.click.block;
+package dev.shadowsoffire.clickmachine.block;
 
+import dev.shadowsoffire.clickmachine.block.gui.AutoClickContainer;
 import dev.shadowsoffire.placebo.block_entity.TickingEntityBlock;
 import dev.shadowsoffire.placebo.menu.MenuUtil;
 import net.minecraft.core.BlockPos;
@@ -26,7 +27,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
-import shadows.click.block.gui.AutoClickContainer;
 
 public class AutoClickerBlock extends Block implements TickingEntityBlock {
 

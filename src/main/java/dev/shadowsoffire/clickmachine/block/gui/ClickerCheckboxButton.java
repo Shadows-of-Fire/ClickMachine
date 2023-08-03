@@ -1,4 +1,4 @@
-package shadows.click.block.gui;
+package dev.shadowsoffire.clickmachine.block.gui;
 
 import java.util.function.BooleanSupplier;
 

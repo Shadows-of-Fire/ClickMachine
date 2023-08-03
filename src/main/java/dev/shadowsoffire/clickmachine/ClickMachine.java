@@ -1,4 +1,4 @@
-package shadows.click;
+package dev.shadowsoffire.clickmachine;
 
 import java.io.File;
 
@@ -7,6 +7,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
 
+import dev.shadowsoffire.clickmachine.block.AutoClickerBlock;
+import dev.shadowsoffire.clickmachine.block.AutoClickerTile;
+import dev.shadowsoffire.clickmachine.block.gui.AutoClickContainer;
+import dev.shadowsoffire.clickmachine.util.FakePlayerUtil.UsefulFakePlayer;
 import dev.shadowsoffire.placebo.block_entity.TickingBlockEntityType;
 import dev.shadowsoffire.placebo.config.Configuration;
 import dev.shadowsoffire.placebo.loot.LootSystem;
@@ -28,10 +32,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ObjectHolder;
 import net.minecraftforge.registries.RegisterEvent;
-import shadows.click.block.AutoClickerBlock;
-import shadows.click.block.AutoClickerTile;
-import shadows.click.block.gui.AutoClickContainer;
-import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
 @Mod(ClickMachine.MODID)
 public class ClickMachine {

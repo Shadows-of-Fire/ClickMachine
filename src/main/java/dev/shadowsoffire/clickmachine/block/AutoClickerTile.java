@@ -1,10 +1,14 @@
-package shadows.click.block;
+package dev.shadowsoffire.clickmachine.block;
 
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
 
+import dev.shadowsoffire.clickmachine.ClickMachine;
+import dev.shadowsoffire.clickmachine.ClickMachineConfig;
+import dev.shadowsoffire.clickmachine.util.FakePlayerUtil;
+import dev.shadowsoffire.clickmachine.util.FakePlayerUtil.UsefulFakePlayer;
 import dev.shadowsoffire.placebo.block_entity.TickingBlockEntity;
 import dev.shadowsoffire.placebo.cap.ModifiableEnergyStorage;
 import dev.shadowsoffire.placebo.menu.SimpleDataSlots;
@@ -26,10 +30,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import shadows.click.ClickMachine;
-import shadows.click.ClickMachineConfig;
-import shadows.click.util.FakePlayerUtil;
-import shadows.click.util.FakePlayerUtil.UsefulFakePlayer;
 
 public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
 

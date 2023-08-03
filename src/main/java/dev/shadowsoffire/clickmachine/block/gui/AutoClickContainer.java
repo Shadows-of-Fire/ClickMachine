@@ -1,12 +1,12 @@
-package shadows.click.block.gui;
+package dev.shadowsoffire.clickmachine.block.gui;
 
+import dev.shadowsoffire.clickmachine.ClickMachine;
+import dev.shadowsoffire.clickmachine.block.AutoClickerTile;
 import dev.shadowsoffire.placebo.menu.BlockEntityMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.items.SlotItemHandler;
-import shadows.click.ClickMachine;
-import shadows.click.block.AutoClickerTile;
 
 public class AutoClickContainer extends BlockEntityMenu<AutoClickerTile> {
 
