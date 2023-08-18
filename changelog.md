@@ -1,6 +1,10 @@
 ## Future
 * Added support for holding down left or right click.
 
+## 8.0.1
+* Removed forge dependency line from the mods.toml and marked as Forge and NeoForge for CF.
+  * The dependency will be added back and the Forge marker will be removed once CF supports Neo correctly.
+
 ## 8.0.0
 * Updated to 1.20.1
 
