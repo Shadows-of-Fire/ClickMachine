@@ -51,7 +51,6 @@ public class ClickMachine {
 
     public ClickMachine() {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::blockJoin);
-        ClickMachineConfig.init(new Configuration(new File(FMLPaths.CONFIGDIR.get().toFile(), "clickmachine.cfg")));
         FMLJavaModLoadingContext.get().getModEventBus().register(this);
     }
 
@@ -72,6 +71,7 @@ public class ClickMachine {
         e.enqueueWork(() -> {
             TabFillingRegistry.register(() -> AUTO_CLICKER, CreativeModeTabs.REDSTONE_BLOCKS);
         });
+        ClickMachineConfig.init(new Configuration(new File(FMLPaths.CONFIGDIR.get().toFile(), "clickmachine.cfg")));
     }
 
     public void blockJoin(EntityJoinLevelEvent e) {
