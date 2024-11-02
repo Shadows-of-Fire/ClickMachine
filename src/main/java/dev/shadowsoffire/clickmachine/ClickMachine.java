@@ -3,6 +3,7 @@ package dev.shadowsoffire.clickmachine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dev.shadowsoffire.clickmachine.ClickMachineConfig.ConfigPayload;
 import dev.shadowsoffire.clickmachine.block.ClickMachineBlock;
 import dev.shadowsoffire.clickmachine.block.ClickMachineTile;
 import dev.shadowsoffire.clickmachine.data.ClickRecipes;
@@ -32,8 +33,10 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 @Mod(ClickMachine.MODID)
 public class ClickMachine {
@@ -97,6 +100,16 @@ public class ClickMachine {
         @SubscribeEvent
         public void reloads(AddReloadListenerEvent e) {
             e.addListener(RunnableReloader.of(() -> ClickMachineConfig.init(new Configuration(MODID))));
+        }
+
+        @SubscribeEvent
+        public void sync(OnDatapackSyncEvent e) {
+            if (e.getPlayer() != null) {
+                PacketDistributor.sendToPlayer(e.getPlayer(), new ConfigPayload());
+            }
+            else {
+                PacketDistributor.sendToAllPlayers(new ConfigPayload());
+            }
         }
     }
 
