@@ -1,6 +1,6 @@
 {
     "gui.clickmachine.autoclick": "Macchina Auto-Cliccante",
-    "block.clickmachine.auto_clicker": "Macchina Auto-Cliccante",
+    "block.clickmachine.click_machine": "Macchina Auto-Cliccante",
     "gui.clickmachine.speed": "%s click/s",
     "gui.clickmachine.sneaking": "Abbassato",
     "gui.clickmachine.right_click": "Click tasto destro",

@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "package": "dev.shadowsoffire.clickmachine.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+
+    ],
+    "client": [
+
+    ],
+    "minVersion": "0.8"
+}

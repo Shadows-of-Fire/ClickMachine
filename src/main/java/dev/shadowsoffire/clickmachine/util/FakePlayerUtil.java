@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 
 import com.mojang.authlib.GameProfile;
 
-import dev.shadowsoffire.clickmachine.block.AutoClickerTile;
+import dev.shadowsoffire.clickmachine.block.ClickMachineTile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -17,6 +17,7 @@ import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -24,28 +25,27 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.Arrow;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.ClipContext.Block;
 import net.minecraft.world.level.ClipContext.Fluid;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.ITeleporter;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
-@EventBusSubscriber
 public class FakePlayerUtil {
 
     public static class UsefulFakePlayer extends FakePlayer {
@@ -55,12 +55,10 @@ public class FakePlayerUtil {
         }
 
         @Override
-        public float getEyeHeight(Pose pose) {
-            return 0; // Allows for the position of the player to be the exact source when raytracing.
-        }
+        public void initInventoryMenu() {}
 
         @Override
-        public void initMenu(AbstractContainerMenu p_143400_) {}
+        public void openHorseInventory(AbstractHorse horse, Container container) {}
 
         @Override
         public OptionalInt openMenu(MenuProvider p_9033_) {
@@ -73,13 +71,13 @@ public class FakePlayerUtil {
         }
 
         @Override
-        public Entity changeDimension(ServerLevel server, ITeleporter teleporter) {
-            return createPlayer(server, this.getGameProfile());
+        public Entity changeDimension(DimensionTransition transition) {
+            return null;
         }
     }
 
     /**
-     * Creates a new UsefulFakePlayer. Each {@link AutoClickerTile} needs its own.
+     * Creates a new UsefulFakePlayer. Each {@link ClickMachineTile} needs its own.
      */
     public static UsefulFakePlayer createPlayer(Level world, GameProfile profile) {
         return new UsefulFakePlayer(world, profile);
@@ -104,7 +102,15 @@ public class FakePlayerUtil {
         double y = 0.5 + sideVec.getY() / 1.9D;
         double z = a == Axis.Z && ad == AxisDirection.NEGATIVE ? -.5 : .5 + sideVec.getZ() / 1.9D;
         player.moveTo(pos.getX() + x, pos.getY() + y - player.getEyeHeight(), pos.getZ() + z, yaw, pitch);
-        if (!toHold.isEmpty()) player.getAttributes().addTransientAttributeModifiers(toHold.getAttributeModifiers(EquipmentSlot.MAINHAND));
+        if (!toHold.isEmpty()) {
+            ItemAttributeModifiers modifiers = toHold.getAttributeModifiers();
+            modifiers.forEach(EquipmentSlot.MAINHAND, (attr, modif) -> {
+                AttributeInstance inst = player.getAttribute(attr);
+                if (inst != null) {
+                    inst.addOrUpdateTransientModifier(modif);
+                }
+            });
+        }
         player.setShiftKeyDown(sneaking);
     }
 
@@ -116,7 +122,15 @@ public class FakePlayerUtil {
      * @param oldStack    The previous stack, from before use.
      */
     public static void cleanupFakePlayerFromUse(UsefulFakePlayer player, ItemStack resultStack, ItemStack oldStack, Consumer<ItemStack> stackCallback) {
-        if (!oldStack.isEmpty()) player.getAttributes().removeAttributeModifiers(oldStack.getAttributeModifiers(EquipmentSlot.MAINHAND));
+        if (!oldStack.isEmpty()) {
+            ItemAttributeModifiers modifiers = oldStack.getAttributeModifiers();
+            modifiers.forEach(EquipmentSlot.MAINHAND, (attr, modif) -> {
+                AttributeInstance inst = player.getAttribute(attr);
+                if (inst != null) {
+                    inst.removeModifier(modif);
+                }
+            });
+        }
         player.getInventory().items.set(player.getInventory().selected, ItemStack.EMPTY);
         stackCallback.accept(resultStack);
         if (!player.getInventory().isEmpty()) player.getInventory().dropAll();
@@ -134,7 +148,7 @@ public class FakePlayerUtil {
      * @return The remainder of whatever the player was holding. This should be set back into the tile's stack handler or similar.
      */
     public static ItemStack rightClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
-        HitResult toUse = rayTrace(player, world, player.getAttributeValue(ForgeMod.BLOCK_REACH.get()));
+        HitResult toUse = rayTrace(player, world, player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE));
         if (toUse == null) return player.getMainHandItem();
 
         ItemStack itemstack = player.getMainHandItem();
@@ -161,7 +175,7 @@ public class FakePlayerUtil {
             }
         }
 
-        if (itemstack.isEmpty() && (toUse == null || toUse.getType() == HitResult.Type.MISS)) ForgeHooks.onEmptyClick(player, InteractionHand.MAIN_HAND);
+        if (itemstack.isEmpty() && (toUse == null || toUse.getType() == HitResult.Type.MISS)) CommonHooks.onEmptyClick(player, InteractionHand.MAIN_HAND);
         if (!itemstack.isEmpty()) player.gameMode.useItem(player, world, itemstack, InteractionHand.MAIN_HAND);
         return player.getMainHandItem();
     }
@@ -177,7 +191,7 @@ public class FakePlayerUtil {
      * @return The remainder of whatever the player was holding. This should be set back into the tile's stack handler or similar.
      */
     public static ItemStack leftClickInDirection(UsefulFakePlayer player, Level world, BlockPos pos, Direction side, BlockState sourceState) {
-        HitResult toUse = rayTrace(player, world, player.getAttributeValue(ForgeMod.BLOCK_REACH.get()));
+        HitResult toUse = rayTrace(player, world, player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE));
         if (toUse == null) return player.getMainHandItem();
 
         if (toUse.getType() == HitResult.Type.ENTITY) {
@@ -281,7 +295,7 @@ public class FakePlayerUtil {
                     return player.interactOn(entity, InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
                 }
                 else if (action == InteractionType.INTERACT_AT) {
-                    if (ForgeHooks.onInteractEntityAt(player, entity, result.getLocation(), InteractionHand.MAIN_HAND) != null) return false;
+                    if (CommonHooks.onInteractEntityAt(player, entity, result.getLocation(), InteractionHand.MAIN_HAND) != null) return false;
                     return entity.interactAt(player, result.getLocation(), InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
                 }
                 else if (action == InteractionType.ATTACK) {

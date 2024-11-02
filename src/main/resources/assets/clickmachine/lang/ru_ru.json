@@ -1,6 +1,6 @@
 {
   "gui.clickmachine.autoclick": "Авто-Использователь",
-  "block.clickmachine.auto_clicker": "Авто-Использователь",
+  "block.clickmachine.click_machine": "Авто-Использователь",
   "gui.clickmachine.speed": "%s клик/с",
   "gui.clickmachine.sneaking": "Режим SHIFT+ЛКМ",
   "gui.clickmachine.right_click": "Режим ПКМ",

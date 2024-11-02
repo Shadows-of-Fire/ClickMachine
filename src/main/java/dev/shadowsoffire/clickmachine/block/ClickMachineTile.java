@@ -15,6 +15,8 @@ import dev.shadowsoffire.placebo.menu.SimpleDataSlots;
 import dev.shadowsoffire.placebo.menu.SimpleDataSlots.IDataAutoRegister;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -24,32 +26,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
-public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
+public class ClickMachineTile extends BlockEntity implements Consumer<ItemStack>, TickingBlockEntity, IDataAutoRegister {
 
     public static final GameProfile DEFAULT_CLICKER = new GameProfile(UUID.fromString("36f373ac-29ef-4150-b664-e7e6006efcd8"), "[The Click Machine]");
 
-    ItemStackHandler held;
-    ModifiableEnergyStorage power = new ModifiableEnergyStorage(ClickMachineConfig.maxPowerStorage);
-    int speedIdx = 0;
-    boolean sneak = false;
-    boolean rightClick = true;
-
-    GameProfile profile;
-    UsefulFakePlayer player;
-
-    int counter = 0;
-
     protected final SimpleDataSlots data = new SimpleDataSlots();
 
-    public AutoClickerTile(BlockPos pos, BlockState state) {
-        super(ClickMachine.AUTO_CLICKER_TILE, pos, state);
+    protected ItemStackHandler held;
+    protected ModifiableEnergyStorage power = new ModifiableEnergyStorage(ClickMachineConfig.maxPowerStorage);
+    protected int speedIdx = 0;
+    protected boolean sneak = false;
+    protected boolean rightClick = true;
+    protected int counter = 0;
+
+    protected transient GameProfile profile;
+    protected transient UsefulFakePlayer player;
+
+    public ClickMachineTile(BlockPos pos, BlockState state) {
+        super(ClickMachine.CLICK_MACHINE_TILE, pos, state);
         this.held = new ItemStackHandler(1){
             @Override
             public boolean isItemValid(int slot, ItemStack stack) {
@@ -72,7 +70,7 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
             if (this.power.extractEnergy(use, true) == use) {
                 this.power.extractEnergy(use, false);
                 if (this.counter++ % this.getSpeed() == 0) {
-                    Direction facing = level.getBlockState(this.worldPosition).getValue(AutoClickerBlock.FACING);
+                    Direction facing = level.getBlockState(this.worldPosition).getValue(ClickMachineBlock.FACING);
                     FakePlayerUtil.setupFakePlayerForUse(this.getPlayer(), this.worldPosition, facing, this.held.getStackInSlot(0).copy(), this.sneak);
                     ItemStack result = this.held.getStackInSlot(0);
                     if (this.rightClick) result = FakePlayerUtil.rightClickInDirection(this.getPlayer(), this.level, this.worldPosition, facing, level.getBlockState(this.worldPosition));
@@ -81,13 +79,13 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
                     this.setChanged();
                 }
             }
-            if (!state.getValue(AutoClickerBlock.ACTIVE)) {
-                level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, true), 2);
+            if (!state.getValue(ClickMachineBlock.ACTIVE)) {
+                level.setBlock(this.worldPosition, state.setValue(ClickMachineBlock.ACTIVE, true), 2);
             }
         }
         else {
-            if (state.getValue(AutoClickerBlock.ACTIVE)) {
-                level.setBlock(this.worldPosition, state.setValue(AutoClickerBlock.ACTIVE, false), 2);
+            if (state.getValue(ClickMachineBlock.ACTIVE)) {
+                level.setBlock(this.worldPosition, state.setValue(ClickMachineBlock.ACTIVE, false), 2);
             }
         }
 
@@ -99,22 +97,16 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
         this.setChanged();
     }
 
-    LazyOptional<IItemHandler> ihopt = LazyOptional.of(() -> this.held);
-    LazyOptional<IEnergyStorage> ieopt = LazyOptional.of(() -> this.power);
-
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) return this.ihopt.cast();
-        if (cap == ForgeCapabilities.ENERGY && ClickMachineConfig.usesRF) return this.ieopt.cast();
-        return super.getCapability(cap, side);
-    }
-
     UsefulFakePlayer getPlayer() {
         return this.player;
     }
 
     public IItemHandler getHandler() {
         return this.held;
+    }
+
+    public IEnergyStorage getEnergy() {
+        return this.power;
     }
 
     public int getSpeed() {
@@ -158,13 +150,13 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
     static final String tagEnergy = "fe";
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
+        super.saveAdditional(tag, regs);
         if (this.profile != null) {
             tag.putUUID(tagUUID, this.profile.getId());
             tag.putString(tagName, this.profile.getName());
         }
-        tag.put(tagHandler, this.held.serializeNBT());
+        tag.put(tagHandler, this.held.serializeNBT(regs));
         tag.putInt(tagCounter, this.counter % this.getSpeed());
         this.writeSyncData(tag);
     }
@@ -185,21 +177,21 @@ public class AutoClickerTile extends BlockEntity implements Consumer<ItemStack>,
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, Provider regs) {
+        super.loadAdditional(tag, regs);
         if (tag.contains(tagUUID) && tag.contains(tagName)) this.profile = new GameProfile(tag.getUUID(tagUUID), tag.getString(tagName));
-        if (tag.contains(tagHandler)) this.held.deserializeNBT(tag.getCompound(tagHandler));
+        if (tag.contains(tagHandler)) this.held.deserializeNBT(regs, tag.getCompound(tagHandler));
         this.counter = tag.getInt(tagCounter);
         this.readSyncData(tag);
     }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this, b -> ((AutoClickerTile) b).writeSyncData(new CompoundTag()));
+        return ClientboundBlockEntityDataPacket.create(this, (be, regs) -> ((ClickMachineTile) be).writeSyncData(new CompoundTag()));
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider regs) {
         this.readSyncData(pkt.getTag());
     }
 

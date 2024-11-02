@@ -1,6 +1,6 @@
 {
     "gui.clickmachine.autoclick": "Auto Clicker",
-    "block.clickmachine.auto_clicker": "Auto Clicker",
+    "block.clickmachine.click_machine": "Auto Clicker",
     "gui.clickmachine.speed_0.rf.tooltip": "Velocidade 0: Um clique a cada %s ticks, %s rf/t",
     "gui.clickmachine.speed_1.rf.tooltip": "Velocidade 1: Um clique a cada %s ticks, %s rf/t",
     "gui.clickmachine.speed_2.rf.tooltip": "Velocidade 2: Um clique a cada %s ticks, %s rf/t",

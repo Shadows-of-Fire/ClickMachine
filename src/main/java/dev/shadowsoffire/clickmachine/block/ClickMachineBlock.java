@@ -1,12 +1,11 @@
 package dev.shadowsoffire.clickmachine.block;
 
-import dev.shadowsoffire.clickmachine.block.gui.AutoClickContainer;
+import dev.shadowsoffire.clickmachine.gui.ClickMachineMenu;
 import dev.shadowsoffire.placebo.block_entity.TickingEntityBlock;
 import dev.shadowsoffire.placebo.menu.MenuUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,19 +27,19 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class AutoClickerBlock extends Block implements TickingEntityBlock {
+public class ClickMachineBlock extends Block implements TickingEntityBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-    public AutoClickerBlock() {
+    public ClickMachineBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).sound(SoundType.METAL).strength(5));
         this.registerDefaultState(this.defaultBlockState().setValue(ACTIVE, true));
     }
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return new AutoClickerTile(pPos, pState);
+        return new ClickMachineTile(pPos, pState);
     }
 
     @Override
@@ -61,8 +60,8 @@ public class AutoClickerBlock extends Block implements TickingEntityBlock {
     @Override
     public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         BlockEntity te = world.getBlockEntity(pos);
-        if (!world.isClientSide && te instanceof AutoClickerTile && placer instanceof Player) {
-            ((AutoClickerTile) te).setPlayer((Player) placer);
+        if (!world.isClientSide && te instanceof ClickMachineTile && placer instanceof Player) {
+            ((ClickMachineTile) te).setPlayer((Player) placer);
         }
     }
 
@@ -76,8 +75,8 @@ public class AutoClickerBlock extends Block implements TickingEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        return MenuUtil.openGui(player, pos, AutoClickContainer::new);
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        return MenuUtil.openGui(player, pos, ClickMachineMenu::new);
     }
 
     @Override
@@ -85,7 +84,7 @@ public class AutoClickerBlock extends Block implements TickingEntityBlock {
     public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() == this && newState.getBlock() == this) return;
         BlockEntity te = world.getBlockEntity(pos);
-        if (te instanceof AutoClickerTile) popResource(world, pos, ((AutoClickerTile) te).held.getStackInSlot(0));
+        if (te instanceof ClickMachineTile) popResource(world, pos, ((ClickMachineTile) te).held.getStackInSlot(0));
         super.onRemove(state, world, pos, newState, isMoving);
     }
 
@@ -98,8 +97,8 @@ public class AutoClickerBlock extends Block implements TickingEntityBlock {
     @Deprecated
     public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
         BlockEntity te = pLevel.getBlockEntity(pPos);
-        if (te instanceof AutoClickerTile) {
-            ItemStack i = ((AutoClickerTile) te).held.getStackInSlot(0);
+        if (te instanceof ClickMachineTile) {
+            ItemStack i = ((ClickMachineTile) te).held.getStackInSlot(0);
             if (i.isEmpty()) return 0;
             if (i.getMaxStackSize() == 1 && i.isDamageableItem()) {
                 return Mth.floor(15F * (i.getMaxDamage() - i.getDamageValue()) / i.getMaxDamage());

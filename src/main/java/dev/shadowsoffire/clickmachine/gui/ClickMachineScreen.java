@@ -1,4 +1,4 @@
-package dev.shadowsoffire.clickmachine.block.gui;
+package dev.shadowsoffire.clickmachine.gui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,17 +15,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 
-public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> implements IDataUpdateListener {
+public class ClickMachineScreen extends PlaceboContainerScreen<ClickMachineMenu> implements IDataUpdateListener {
 
-    public static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ClickMachine.MODID, "textures/gui/auto_click.png");
+    public static final ResourceLocation GUI_TEXTURE = ClickMachine.loc("textures/gui/auto_click.png");
     protected Player player = Minecraft.getInstance().player;
     protected SpeedSlider slider;
 
-    public AutoClickScreen(AutoClickContainer container, Inventory inv, Component name) {
+    public ClickMachineScreen(ClickMachineMenu container, Inventory inv, Component name) {
         super(container, inv, name);
         this.imageWidth = 176;
         this.imageHeight = 196;
-        this.menu.addDataListener(this);
     }
 
     @Override
@@ -36,18 +35,12 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
         this.slider = this.addRenderableWidget(new SpeedSlider(this, x, y, 100, 20));
         this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 22, 20, 20, Component.translatable("gui.clickmachine.sneaking"), 3, this.menu::isSneaking));
         this.addRenderableWidget(new ClickerCheckboxButton(this, x, y + 44, 20, 20, Component.translatable("gui.clickmachine.right_click"), 4, this.menu::isRightClicking));
+        this.menu.addDataListener(this);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         return this.getFocused() != null && this.isDragging() && button == 0 ? this.getFocused().mouseDragged(mouseX, mouseY, button, dragX, dragY) : super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
-    public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(gfx);
-        super.render(gfx, mouseX, mouseY, partialTicks);
-        this.renderTooltip(gfx, mouseX, mouseY);
     }
 
     @Override
@@ -71,7 +64,7 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
             gfx.blit(GUI_TEXTURE, x, y, this.imageWidth, 0, 21, 64 - (int) (ratio * 64));
         }
         else {
-            ClientUtil.colorBlit(gfx.pose(), x + 1, y + 1, this.imageWidth + 43, 1, 19, 62, colors[(int) ((partialTicks + Minecraft.getInstance().player.tickCount / 0.5F) % colors.length)]);
+            ClientUtil.colorBlit(gfx.pose(), x + 1, y + 1, this.imageWidth + 43, 1, 19, 62, 0xFF000000 | colors[(int) ((partialTicks + Minecraft.getInstance().player.tickCount / 0.5F) % colors.length)]);
         }
     }
 
@@ -109,7 +102,9 @@ public class AutoClickScreen extends PlaceboContainerScreen<AutoClickContainer> 
 
     @Override
     public void dataUpdated(int id, int value) {
-        if (id == 2) this.slider.setValue(value);
+        if (id == 1) {
+            this.slider.setValue(value);
+        }
     }
 
 }

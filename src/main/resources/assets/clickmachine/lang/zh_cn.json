@@ -1,6 +1,6 @@
 {
   "gui.clickmachine.autoclick": "自动点击器",
-  "block.clickmachine.auto_clicker": "自动点击器",
+  "block.clickmachine.click_machine": "自动点击器",
   "gui.clickmachine.speed_0.rf.tooltip": "速度０：每%sticks点击一次，%srf/t",
   "gui.clickmachine.speed_1.rf.tooltip": "速度１：每%sticks点击一次，%srf/t",
   "gui.clickmachine.speed_2.rf.tooltip": "速度２：每%sticks点击一次，%srf/t",
