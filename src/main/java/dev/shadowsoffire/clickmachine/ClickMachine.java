@@ -13,6 +13,7 @@ import dev.shadowsoffire.clickmachine.util.FakePlayerUtil.UsefulFakePlayer;
 import dev.shadowsoffire.placebo.block_entity.TickingBlockEntityType.TickSide;
 import dev.shadowsoffire.placebo.config.Configuration;
 import dev.shadowsoffire.placebo.datagen.DataGenBuilder;
+import dev.shadowsoffire.placebo.network.PayloadHelper;
 import dev.shadowsoffire.placebo.registry.DeferredHelper;
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
 import dev.shadowsoffire.placebo.util.RunnableReloader;
@@ -63,6 +64,7 @@ public class ClickMachine {
         e.enqueueWork(() -> {
             TabFillingRegistry.registerSimple(CreativeModeTabs.REDSTONE_BLOCKS, CLICK_MACHINE_ITEM.value());
         });
+        PayloadHelper.registerPayload(new ConfigPayload.Provider());
     }
 
     @SubscribeEvent
