@@ -8,7 +8,7 @@ license="MIT License"
 
 modId="clickmachine"
 
-version="9.0.0-beta0"
+version="9.0.0"
 
 displayName="Click Machine"
 
@@ -36,6 +36,6 @@ config="clickmachine.mixins.json"
 [[dependencies.clickmachine]]
     modId="placebo"
     type="required"
-    versionRange="[9.5.4-beta0,)"
+    versionRange="[9.5.4,)"
     ordering="NONE"
     side="BOTH"

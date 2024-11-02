@@ -1,6 +1,11 @@
 ## Future
 * Added support for holding down left or right click.
 
+## 9.0.0
+* Updated to 1.21.1.
+* Made the config synced from client to server.
+* Changed display logic to show seconds-per-click when the speed is less than 1 click/s.
+
 ## 8.0.2
 * Fixed the config loading too early to blacklist non-vanilla items.
 
