@@ -24,8 +24,14 @@ public class SpeedSlider extends AbstractSliderButton {
     protected void updateMessage() {
         int spd = denormalizeValue(this.value);
         int ticksPerClick = ClickMachineConfig.speeds[spd];
-        double cps = 1D / ticksPerClick * 20;
-        this.setMessage(Component.translatable("gui.clickmachine.speed", String.format("%.2f", cps)));
+        if (ticksPerClick <= 20) {
+            double cps = 1D / ticksPerClick * 20;
+            this.setMessage(Component.translatable("gui.clickmachine.speed", String.format("%.2f", cps)));
+        }
+        else {
+            double spc = ticksPerClick / 20D;
+            this.setMessage(Component.translatable("gui.clickmachine.speed_slow", String.format("%.2f", spc)));
+        }
     }
 
     @Override
