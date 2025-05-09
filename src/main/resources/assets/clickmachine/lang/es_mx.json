@@ -1,0 +1,10 @@
+{
+    "gui.clickmachine.autoclick": "Maquina De Clics",
+    "block.clickmachine.auto_clicker": "Maquina De Clics",
+    "gui.clickmachine.speed": "%s clicks/s",
+    "gui.clickmachine.sneaking": "Shiftear",
+    "gui.clickmachine.right_click": "Click Derecho",
+    "gui.clickmachine.power": "FE: %s/%s",
+	"gui.clickmachine.power.usage": "Usa %s FE/t",
+	"gui.clickmachine.rainbow_magic": "Impulsado Por Magia Arcoiris!"
+}
