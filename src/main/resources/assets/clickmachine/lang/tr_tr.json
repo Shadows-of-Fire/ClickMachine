@@ -1,0 +1,12 @@
+{
+    "gui.clickmachine.autoclick": "Tıklama Makinesi",
+	
+    "block.clickmachine.auto_clicker": "Tıklama Makinesi",
+	
+    "gui.clickmachine.speed": "%s tıklama/s",
+    "gui.clickmachine.sneaking": "Eğiliniyor",
+    "gui.clickmachine.right_click": "Sağ Tıklanıyor",
+    "gui.clickmachine.power": "FE: %s/%s",
+	"gui.clickmachine.power.usage": "%s FE/t Kullanılıyor",
+	"gui.clickmachine.rainbow_magic": "Rainbow Magic Tarafından Desteklenmektedir!"
+}
