@@ -1,6 +1,11 @@
 ## Future
 * Added support for holding down left or right click.
 
+## 9.0.1
+* Updated to Placebo 9.9.0
+* SrNadien: Added Spanish translation.
+* RuyaSavascisi: Added Turkish translation.
+
 ## 9.0.0
 * Updated to 1.21.1.
 * Made the config synced from client to server.
